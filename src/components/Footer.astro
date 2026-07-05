@@ -1,0 +1,86 @@
+---
+// src/components/Footer.astro
+// TODO: substituir links de contato e mapa pelos dados reais
+const whatsapp = "https://wa.me/5522000000000";
+const instagram = "https://instagram.com/quemquemoficial";
+const maps = "https://maps.google.com/?q=Qüem+Qüem+Itaperuna";
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container top">
+    <p class="brand">Q<span class="u">ü</span>em Q<span class="u">ü</span>em</p>
+    <p class="tag">a esquina mais charmosa da cidade</p>
+    <div class="social">
+      <a href={instagram} target="_blank" rel="noopener">Instagram</a>
+      <span aria-hidden="true">·</span>
+      <a href={whatsapp} target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+
+  <div class="container grid">
+    <div class="block">
+      <span class="label">Horário</span>
+      <p>Ter–sáb · 11h à 1h</p>
+      <p>Dom · 11h às 16h</p>
+      <p class="mute">Fechado às segundas</p>
+    </div>
+    <div class="block">
+      <span class="label">Endereço</span>
+      <p>R. Dr. Edgar Pinheiro Dias, 194</p>
+      <p>Pres. Costa e Silva — Itaperuna/RJ</p>
+      <p><a href={maps} target="_blank" rel="noopener">Como chegar →</a></p>
+    </div>
+    <div class="block">
+      <span class="label">Mesas</span>
+      <p>Sem reserva. É só chegar.</p>
+      <p class="mute">Nos dias cheios, chegue cedo.</p>
+    </div>
+  </div>
+
+  <div class="container base">© {year} Qüem Qüem · Itaperuna, RJ · ButiQüem</div>
+</footer>
+
+<style>
+  .footer {
+    background: var(--preto);
+    border-top: 1px solid var(--dark-line);
+    padding-block: clamp(3.5rem, 7vw, 5.5rem) 2rem;
+    text-align: center;
+  }
+
+  .top { margin-bottom: clamp(2.5rem, 5vw, 4rem); }
+  .brand { font-family: var(--display); font-size: var(--s-2); color: var(--marfim); }
+  .brand .u { color: var(--champagne); }
+  .tag { font-family: var(--display); font-style: italic; color: var(--dark-mute); margin-top: .4rem; }
+
+  .social {
+    margin-top: 1.4rem;
+    display: flex; justify-content: center; gap: .9rem;
+    font-size: var(--s--1); letter-spacing: .14em; text-transform: uppercase;
+    color: var(--dark-mute);
+  }
+  .social a { color: var(--dark-dim); transition: color .2s var(--ease); }
+  .social a:hover { color: var(--ouro); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.5rem;
+    padding-block: 2.5rem;
+    border-block: 1px solid var(--dark-line);
+  }
+  .label {
+    font-size: var(--s--1); letter-spacing: .3em; text-transform: uppercase;
+    color: var(--champagne); font-weight: 600;
+    display: block; margin-bottom: .9rem;
+  }
+  .block p { font-size: var(--s--1); color: var(--dark-dim); }
+  .block .mute { color: var(--dark-mute); }
+  .block a { color: var(--marfim); border-bottom: 1px solid var(--dark-line); padding-bottom: 1px; transition: color .2s var(--ease), border-color .2s var(--ease); }
+  .block a:hover { color: var(--ouro); border-color: var(--champagne); }
+
+  .base { margin-top: 2rem; font-size: var(--s--1); color: var(--dark-mute); }
+
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; gap: 1.8rem; } }
+</style>

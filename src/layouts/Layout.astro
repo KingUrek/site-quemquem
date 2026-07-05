@@ -1,0 +1,64 @@
+---
+// src/layouts/Layout.astro
+import "@fontsource-variable/fraunces";
+import "@fontsource-variable/hanken-grotesk";
+import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "Qüem Qüem — a esquina mais charmosa de Itaperuna",
+  description =
+    "Restaurante-bar premium em Itaperuna há 40 anos. Chopp geladíssimo na tulipa congelada, chopp de vinho e uma adega rara para a região.",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+
+    <!-- Open Graph: como o link aparece quando compartilhado no WhatsApp/Instagram -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:locale" content="pt_BR" />
+    <!-- TODO: trocar pela URL final e por uma foto real do restaurante (1200×630) -->
+    <!-- <meta property="og:image" content="https://quemquem.com.br/og.jpg" /> -->
+  </head>
+  <body>
+    <slot />
+
+    <script>
+      // Revela seções conforme entram na tela. Respeita prefers-reduced-motion.
+      const prefersReduced = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+
+      const items = document.querySelectorAll<HTMLElement>(".reveal");
+
+      if (prefersReduced || !("IntersectionObserver" in window)) {
+        items.forEach((el) => el.classList.add("is-in"));
+      } else {
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("is-in");
+                io.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.15, rootMargin: "0px 0px -10% 0px" },
+        );
+        items.forEach((el) => io.observe(el));
+      }
+    </script>
+  </body>
+</html>

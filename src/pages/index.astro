@@ -1,17 +1,417 @@
 ---
+// src/pages/index.astro
+import Layout from "../layouts/Layout.astro";
+import PromoBar from "../components/PromoBar.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
 
+const favoritos = [
+  {
+    ph: "ph-chopp",
+    tag: "foto · chopp na tulipa",
+    nome: "Chopp na tulipa congelada",
+    desc: "Geladíssimo, na taça que sai direto do freezer. O ritual da casa há 40 anos.",
+    selo: "O clássico",
+  },
+  {
+    ph: "ph-vinho",
+    tag: "foto · chopp de vinho",
+    nome: "Chopp de vinho",
+    desc: "Refrescante e diferente de tudo — o carro-chefe que só existe aqui.",
+    selo: "Só aqui",
+  },
+  {
+    ph: "ph-coxinha",
+    tag: "foto · coxinha",
+    nome: "Coxinha Qüem Qüem",
+    desc: "A tradição da casa em versão pra dividir na mesa, com chopp do lado.",
+    selo: "Pra dividir",
+  },
+  {
+    ph: "ph-picanha",
+    tag: "foto · picanha na chapa",
+    nome: "Picanha na chapa",
+    desc: "Chega crepitando e serve duas pessoas com folga. Capricho de ponta a ponta.",
+    selo: "Serve 2",
+  },
+];
+
+const whatsapp = "https://wa.me/5522000000000"; // TODO: número real
+const instagram = "https://instagram.com/quemquemoficial";
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout>
+  <PromoBar />
+  <Header />
+
+  <main id="topo">
+    <!-- ================= HERÓI ================= -->
+    <section class="hero">
+      <div class="media ph-salao hero__bg"><span class="ph-tag">foto · salão à noite</span></div>
+      <div class="container hero__inner">
+        <p class="script fadein d1">Bem-vindo à esquina</p>
+        <h1 class="h-caps hero__title fadein d2">
+          O point de Itaperuna.<br />
+          <em>Há 40 anos.</em>
+        </h1>
+        <p class="hero__lead fadein d3">
+          Chopp geladíssimo na tulipa congelada, uma adega que surpreende
+          e o dono de olho na cozinha. Tradição servida todos os dias.
+        </p>
+        <div class="hero__cta fadein d4">
+          <a class="btn btn--gold" href="#cardapio">Explorar o cardápio</a>
+          <a class="btn btn--line" href="#visite">Como chegar</a>
+        </div>
+      </div>
+      <div class="container hero__foot fadein d5">
+        <span class="hero__step"><b>01</b> — 02 — 03</span>
+        <span class="hero__meta">Ter–Sáb 11h–1h · Dom 11h–16h · a 5 min da rodoviária</span>
+      </div>
+    </section>
+
+    <!-- ================= NOSSA HISTÓRIA (claro) ================= -->
+    <section class="story on-lite" id="historia">
+      <div class="container story__inner">
+        <div class="story__collage reveal" aria-hidden="true">
+          <div class="frame frame--a"><div class="media ph-fachada"><span class="ph-tag">foto · fachada</span></div></div>
+          <div class="frame frame--b"><div class="media ph-salao2"><span class="ph-tag">foto · salão</span></div></div>
+          <div class="badge">
+            <svg viewBox="0 0 120 120">
+              <defs>
+                <path id="circ" d="M 60,60 m -44,0 a 44,44 0 1,1 88,0 a 44,44 0 1,1 -88,0" />
+              </defs>
+              <text>
+                <textPath href="#circ">· 40 anos · a esquina mais charmosa da cidade</textPath>
+              </text>
+            </svg>
+            <span class="badge__u">¨</span>
+          </div>
+        </div>
+
+        <div class="story__copy reveal">
+          <p class="script">Nossa história</p>
+          <h2 class="h-caps story__title">
+            Nascido em Itaperuna.<br />Servido com alma.
+          </h2>
+          <p>
+            Há quatro décadas na mesma esquina, o Qüem Qüem viu a cidade crescer
+            ao redor — e seguiu fiel ao que o fez virar referência: a tulipa
+            congelada, a mesa farta e o cuidado de quem é da casa.
+          </p>
+          <p>
+            O dono continua no dia a dia, de olho na cozinha. É esse padrão que
+            ninguém consegue copiar — e que faz cliente que chegou criança
+            voltar hoje trazendo os filhos.
+          </p>
+          <a class="btn btn--dark" href="#">Conheça a história</a>
+          <!-- TODO: apontar para /historia quando a página existir -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FAVORITOS (escuro) ================= -->
+    <section class="menu-fav" id="cardapio">
+      <div class="container">
+        <div class="menu-fav__head reveal">
+          <p class="script">O cardápio</p>
+          <h2 class="h-caps">Favoritos da casa</h2>
+        </div>
+
+        <div class="cards">
+          {
+            favoritos.map((f) => (
+              <article class="card reveal">
+                <div class={`media ${f.ph}`}><span class="ph-tag">{f.tag}</span></div>
+                <span class="card__selo">{f.selo}</span>
+                <h3 class="card__nome">{f.nome}</h3>
+                <p class="card__desc">{f.desc}</p>
+              </article>
+            ))
+          }
+        </div>
+
+        <div class="menu-fav__cta reveal">
+          <p class="menu-fav__nota">Quase tudo no cardápio serve duas pessoas — venha com fome e com companhia.</p>
+          <a class="btn btn--line" href="#">Ver o cardápio completo</a>
+          <!-- TODO: apontar para /cardapio quando a página existir -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ADEGA (escuro profundo) ================= -->
+    <section class="adega" id="adega">
+      <div class="media ph-adegabg adega__bg"><span class="ph-tag">foto · adega</span></div>
+      <div class="container adega__inner reveal">
+        <p class="script">A adega</p>
+        <h2 class="h-caps adega__title">Uma carta que não devia<br />caber no interior.</h2>
+        <p class="adega__text">
+          Não precisa de ocasião pra abrir um bom vinho — às vezes só uma quinta
+          merece. Guardamos, lado a lado, o rótulo do dia a dia e aquele que você
+          não esperava encontrar por aqui. Sem pompa: é só pedir, e a gente ajuda
+          a escolher.
+        </p>
+        <a class="btn btn--line" href="#">Ver a carta de vinhos</a>
+      </div>
+    </section>
+
+    <!-- ================= MOMENTOS / INSTAGRAM (claro) ================= -->
+    <section class="momentos on-lite" id="momentos">
+      <div class="container momentos__head reveal">
+        <p class="script">Instagram</p>
+        <h2 class="h-caps">Momentos da esquina</h2>
+      </div>
+      <div class="strip reveal">
+        <a class="media ph-a" href={instagram} target="_blank" rel="noopener" aria-label="Instagram do Qüem Qüem"></a>
+        <a class="media ph-b" href={instagram} target="_blank" rel="noopener" aria-label="Instagram do Qüem Qüem"></a>
+        <a class="media ph-c" href={instagram} target="_blank" rel="noopener" aria-label="Instagram do Qüem Qüem"></a>
+        <a class="media ph-d" href={instagram} target="_blank" rel="noopener" aria-label="Instagram do Qüem Qüem"></a>
+        <a class="media ph-c" href={instagram} target="_blank" rel="noopener" aria-label="Instagram do Qüem Qüem"></a>
+        <a class="media ph-a" href={instagram} target="_blank" rel="noopener" aria-label="Instagram do Qüem Qüem"></a>
+      </div>
+      <div class="container momentos__cta reveal">
+        <a class="btn btn--darkline" href={instagram} target="_blank" rel="noopener">Seguir @quemquemoficial</a>
+      </div>
+    </section>
+
+    <!-- ================= VISITE (claro, destaque) ================= -->
+    <section class="visite on-lite" id="visite">
+      <div class="container visite__box reveal">
+        <div class="visite__copy">
+          <p class="script">Visite a esquina</p>
+          <h2 class="h-caps visite__title">Sem reserva.<br />É só chegar.</h2>
+          <p class="visite__nota">
+            Boa mesa e bons momentos não precisam de agendamento.
+            Nos dias mais cheios — fim de semana e jogos — vale chegar cedo.
+          </p>
+        </div>
+        <div class="visite__info">
+          <div class="row">
+            <span class="k">Horário</span>
+            <div><p>Terça a sábado · 11h à 1h</p><p>Domingo · 11h às 16h</p><p class="mute">Fechado às segundas</p></div>
+          </div>
+          <div class="row">
+            <span class="k">Endereço</span>
+            <div><p>R. Dr. Edgar Pinheiro Dias, 194</p><p class="mute">Pres. Costa e Silva — Itaperuna/RJ · a 5 min da rodoviária</p></div>
+          </div>
+          <div class="row">
+            <span class="k">Contato</span>
+            <div>
+              <p><a href={whatsapp} target="_blank" rel="noopener">WhatsApp para dúvidas e encomendas</a></p>
+              <p><a href={instagram} target="_blank" rel="noopener">@quemquemoficial</a></p>
+            </div>
+          </div>
+          <a class="btn btn--dark" href="#">Abrir no Google Maps</a>
+          <!-- TODO: link real do Maps -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* ---------------- HERÓI ---------------- */
+  .hero {
+    position: relative;
+    min-height: 92svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .hero__bg { position: absolute; inset: 0; }
+  .hero__bg::after {
+    background:
+      linear-gradient(180deg, rgba(20,14,12,.55) 0%, rgba(20,14,12,.25) 40%, rgba(20,14,12,.75) 100%),
+      linear-gradient(100deg, rgba(20,14,12,.6) 0%, transparent 60%);
+  }
+  .hero__inner { position: relative; padding-block: clamp(7rem, 14vh, 10rem) 3rem; }
+  .hero__title { font-size: var(--s-4); color: var(--marfim); margin-top: 1.1rem; max-width: 14ch; }
+  .hero__title em { font-style: italic; color: var(--ouro); text-transform: none; letter-spacing: 0; }
+  .hero__lead { max-width: 44ch; color: var(--dark-dim); margin-top: 1.5rem; }
+  .hero__cta { display: flex; flex-wrap: wrap; gap: .9rem; margin-top: 2.3rem; }
+
+  .hero__foot {
+    position: relative;
+    margin-top: auto;
+    padding-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: var(--s--1);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--dark-mute);
+  }
+  .hero__step b { color: var(--ouro); font-weight: 600; }
+
+  .fadein { opacity: 0; animation: rise .9s var(--ease) forwards; }
+  .d1 { animation-delay: .08s; } .d2 { animation-delay: .2s; }
+  .d3 { animation-delay: .32s; } .d4 { animation-delay: .44s; } .d5 { animation-delay: .56s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+
+  /* ---------------- HISTÓRIA (claro) ---------------- */
+  .story { background: var(--lite-bg); color: var(--lite-text); padding-block: var(--section); }
+  .story__inner {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: clamp(3rem, 7vw, 7rem);
+    align-items: center;
+  }
+
+  .story__collage { position: relative; min-height: 420px; }
+  .frame {
+    position: absolute;
+    background: #fff;
+    padding: 10px 10px 30px;
+    box-shadow: 0 18px 45px rgba(46,33,27,.22);
+  }
+  .frame .media { aspect-ratio: 4/5; width: 100%; }
+  .frame--a { width: 62%; top: 0; left: 0; transform: rotate(-3.5deg); z-index: 1; }
+  .frame--b { width: 52%; bottom: 0; right: 4%; transform: rotate(2.5deg); z-index: 2; }
+
+  .badge {
+    position: absolute;
+    top: 6%;
+    right: 2%;
+    width: clamp(110px, 12vw, 150px);
+    aspect-ratio: 1;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+  }
+  .badge svg { position: absolute; inset: 0; animation: spin 26s linear infinite; }
+  .badge text {
+    font-family: var(--body);
+    font-size: 10.5px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    fill: var(--bronze);
+  }
+  .badge__u {
+    font-family: var(--display);
+    font-size: 2.6rem;
+    line-height: 0;
+    color: var(--bordo);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .story__copy .script { margin-bottom: .4rem; }
+  .story__title { font-size: var(--s-3); color: var(--cafe); margin: .9rem 0 1.4rem; }
+  .story__copy p { color: var(--lite-dim); max-width: 46ch; margin-bottom: 1.2rem; }
+  .story__copy .btn { margin-top: 1rem; }
+
+  @media (max-width: 880px) {
+    .story__inner { grid-template-columns: 1fr; }
+    .story__collage { min-height: 340px; order: -1; }
+  }
+
+  /* ---------------- FAVORITOS (escuro) ---------------- */
+  .menu-fav { background: var(--dark-bg-2); padding-block: var(--section); border-block: 1px solid var(--dark-line); }
+  .menu-fav__head { text-align: center; margin-bottom: clamp(2.5rem, 5vw, 4rem); }
+  .menu-fav__head .script { justify-content: center; }
+  .menu-fav__head .script::after { display: none; }
+  .menu-fav__head h2 { font-size: var(--s-3); color: var(--marfim); margin-top: .8rem; }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(1.1rem, 2vw, 1.8rem);
+  }
+  .card {
+    background: rgba(244,239,232,.03);
+    border: 1px solid var(--dark-line);
+    padding: .9rem .9rem 1.6rem;
+    text-align: center;
+    transition: transform .3s var(--ease), border-color .3s var(--ease);
+  }
+  .card:hover { transform: translateY(-5px); border-color: var(--champagne); }
+  .card .media { aspect-ratio: 1; margin-bottom: 1.2rem; }
+  .card__selo {
+    font-size: .62rem;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--champagne);
+    font-weight: 600;
+  }
+  .card__nome { font-size: var(--s-1); color: var(--marfim); margin: .5rem 0 .6rem; }
+  .card__desc { font-size: var(--s--1); color: var(--dark-dim); line-height: 1.65; max-width: 30ch; margin-inline: auto; }
+
+  .card:nth-child(2) { transition-delay: .07s; }
+  .card:nth-child(3) { transition-delay: .14s; }
+  .card:nth-child(4) { transition-delay: .21s; }
+
+  .menu-fav__cta { text-align: center; margin-top: clamp(2.5rem, 5vw, 3.5rem); }
+  .menu-fav__nota {
+    font-family: var(--display);
+    font-style: italic;
+    color: var(--dark-dim);
+    margin-bottom: 1.6rem;
+  }
+
+  @media (max-width: 1020px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+
+  /* ---------------- ADEGA ---------------- */
+  .adega { position: relative; padding-block: var(--section); overflow: hidden; }
+  .adega__bg { position: absolute; inset: 0; }
+  .adega__bg::after {
+    background: linear-gradient(90deg, rgba(20,13,15,.95) 0%, rgba(20,13,15,.8) 45%, rgba(59,34,56,.5) 100%);
+  }
+  .adega__inner { position: relative; max-width: 56ch; }
+  .adega__title { font-size: var(--s-3); color: var(--marfim); margin: .9rem 0 1.4rem; }
+  .adega__text { color: var(--dark-dim); margin-bottom: 2rem; }
+
+  /* ---------------- MOMENTOS ---------------- */
+  .momentos { background: var(--lite-bg); color: var(--lite-text); padding-block: var(--section) 0; }
+  .momentos__head { text-align: center; margin-bottom: clamp(2rem, 4vw, 3rem); }
+  .momentos__head .script { justify-content: center; }
+  .momentos__head .script::after { display: none; }
+  .momentos__head h2 { font-size: var(--s-3); color: var(--cafe); margin-top: .8rem; }
+
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .strip .media { aspect-ratio: 1; transition: opacity .3s var(--ease); }
+  .strip .media:hover { opacity: .85; }
+
+  .momentos__cta { text-align: center; padding-block: clamp(2.5rem, 5vw, 3.5rem); }
+
+  @media (max-width: 880px) { .strip { grid-template-columns: repeat(3, 1fr); } }
+
+  /* ---------------- VISITE ---------------- */
+  .visite { background: var(--lite-bg-2); color: var(--lite-text); padding-block: var(--section); }
+  .visite__box {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: clamp(2.5rem, 6vw, 6rem);
+    align-items: start;
+  }
+  .visite__title { font-size: var(--s-3); color: var(--cafe); margin: .9rem 0 1.3rem; }
+  .visite__nota { color: var(--lite-dim); max-width: 38ch; }
+
+  .row {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.25rem 0;
+    border-top: 1px solid var(--lite-line);
+  }
+  .row:last-of-type { border-bottom: 1px solid var(--lite-line); margin-bottom: 1.8rem; }
+  .row .k {
+    min-width: 92px;
+    font-size: var(--s--1);
+    letter-spacing: .26em;
+    text-transform: uppercase;
+    color: var(--bronze);
+    font-weight: 600;
+    padding-top: .2rem;
+  }
+  .row p { color: var(--lite-dim); }
+  .row .mute { color: var(--lite-mute); font-size: var(--s--1); }
+  .row a { color: var(--cafe); border-bottom: 1px solid var(--lite-line); padding-bottom: 1px; transition: color .2s var(--ease), border-color .2s var(--ease); }
+  .row a:hover { color: var(--bordo); border-color: var(--bordo); }
+
+  @media (max-width: 880px) { .visite__box { grid-template-columns: 1fr; } }
+</style>

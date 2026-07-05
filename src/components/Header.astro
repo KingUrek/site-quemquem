@@ -1,0 +1,139 @@
+---
+// src/components/Header.astro
+const links = [
+  { href: "#historia", label: "História" },
+  { href: "#cardapio", label: "Cardápio" },
+  { href: "#adega", label: "Adega" },
+  { href: "#momentos", label: "Momentos" },
+  { href: "#visite", label: "Visite" },
+];
+---
+
+<header class="site-header" data-header>
+  <div class="container bar">
+    <a href="#topo" class="brand" aria-label="Qüem Qüem — início">
+      <span class="brand__name">Q<span class="u">ü</span>em Q<span class="u">ü</span>em</span>
+      <span class="brand__sub">restaurante · bar</span>
+    </a>
+
+    <nav class="nav" aria-label="Navegação principal">
+      <ul>
+        {links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+      </ul>
+      <a class="btn btn--gold btn--sm" href="#visite">Como chegar</a>
+    </nav>
+
+    <button
+      class="menu-toggle"
+      aria-expanded="false"
+      aria-controls="mobile-nav"
+      aria-label="Abrir menu"
+      data-toggle
+    >
+      <span></span><span></span>
+    </button>
+  </div>
+
+  <div class="mobile-nav" id="mobile-nav" data-mobile hidden>
+    <ul>
+      {links.map((l) => <li><a href={l.href} data-close>{l.label}</a></li>)}
+    </ul>
+    <a class="btn btn--gold" href="#visite" data-close>Como chegar</a>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--preto) 72%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid transparent;
+    transition: border-color .3s var(--ease), background-color .3s var(--ease);
+  }
+  .site-header[data-scrolled] {
+    border-bottom-color: var(--dark-line);
+    background: color-mix(in srgb, var(--preto) 94%, transparent);
+  }
+
+  .bar { display: flex; align-items: center; justify-content: space-between; height: 5.25rem; }
+
+  .brand { display: grid; line-height: 1.1; }
+  .brand__name { font-family: var(--display); font-size: 1.5rem; letter-spacing: -0.01em; color: var(--marfim); }
+  .brand__name .u { color: var(--champagne); }
+  .brand__sub {
+    font-size: .58rem; letter-spacing: .42em; text-transform: uppercase;
+    color: var(--dark-mute); margin-top: .2rem;
+  }
+
+  .nav { display: flex; align-items: center; gap: 2.25rem; }
+  .nav ul { display: flex; gap: 1.9rem; list-style: none; padding: 0; }
+  .nav ul a {
+    font-size: var(--s--1);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--dark-dim);
+    padding-bottom: .35rem;
+    border-bottom: 1px solid transparent;
+    transition: color .2s var(--ease), border-color .2s var(--ease);
+  }
+  .nav ul a:hover { color: var(--ouro); border-bottom-color: var(--champagne); }
+
+  .btn--sm { padding: .7rem 1.3rem; }
+
+  .menu-toggle {
+    display: none;
+    flex-direction: column; gap: 5px;
+    width: 42px; height: 42px;
+    align-items: center; justify-content: center;
+    background: none; border: 1px solid var(--dark-line); border-radius: 0;
+    cursor: pointer;
+  }
+  .menu-toggle span { width: 18px; height: 1.5px; background: var(--marfim); transition: transform .25s var(--ease); }
+  .menu-toggle[aria-expanded="true"] span:first-child { transform: translateY(3.25px) rotate(45deg); }
+  .menu-toggle[aria-expanded="true"] span:last-child { transform: translateY(-3.25px) rotate(-45deg); }
+
+  .mobile-nav {
+    border-top: 1px solid var(--dark-line);
+    background: var(--preto);
+    padding: 1.5rem var(--gutter) 2rem;
+    display: flex; flex-direction: column; gap: 1.25rem;
+  }
+  .mobile-nav ul { list-style: none; padding: 0; display: grid; gap: .25rem; }
+  .mobile-nav a { font-family: var(--display); font-size: var(--s-1); color: var(--marfim); padding-block: .4rem; }
+  .mobile-nav .btn { align-self: flex-start; }
+
+  @media (max-width: 880px) {
+    .nav { display: none; }
+    .menu-toggle { display: flex; }
+  }
+  @media (min-width: 881px) {
+    .mobile-nav { display: none; }
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>("[data-header]");
+  const toggle = document.querySelector<HTMLButtonElement>("[data-toggle]");
+  const mobile = document.querySelector<HTMLElement>("[data-mobile]");
+
+  const onScroll = () => {
+    if (window.scrollY > 24) header?.setAttribute("data-scrolled", "");
+    else header?.removeAttribute("data-scrolled");
+  };
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  const setOpen = (open: boolean) => {
+    toggle?.setAttribute("aria-expanded", String(open));
+    toggle?.setAttribute("aria-label", open ? "Fechar menu" : "Abrir menu");
+    if (mobile) mobile.hidden = !open;
+  };
+  toggle?.addEventListener("click", () => {
+    setOpen(toggle.getAttribute("aria-expanded") !== "true");
+  });
+  document.querySelectorAll("[data-close]").forEach((a) =>
+    a.addEventListener("click", () => setOpen(false)),
+  );
+</script>
