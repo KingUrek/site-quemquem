@@ -100,6 +100,9 @@ const links = [
     padding: 1.5rem var(--gutter) 2rem;
     display: flex; flex-direction: column; gap: 1.25rem;
   }
+  /* `display: flex` acima sobrescreve o UA style do atributo [hidden];
+     esta regra garante que o menu realmente feche quando hidden = true. */
+  .mobile-nav[hidden] { display: none; }
   .mobile-nav ul { list-style: none; padding: 0; display: grid; gap: .25rem; }
   .mobile-nav a { font-family: var(--display); font-size: var(--s-1); color: var(--marfim); padding-block: .4rem; }
   .mobile-nav .btn { align-self: flex-start; }

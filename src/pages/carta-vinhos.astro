@@ -1,0 +1,62 @@
+---
+// src/pages/carta-vinhos.astro
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout
+  title="Carta de vinhos | Qüem Qüem"
+  description="A carta de vinhos do Qüem Qüem — em breve, online. Enquanto isso, é só pedir e a gente ajuda a escolher."
+>
+  <Header />
+
+  <main id="topo" class="carta">
+    <section class="container carta__inner reveal">
+      <p class="script">A adega</p>
+      <h1 class="h-caps carta__title">Carta de vinhos</h1>
+
+      <p class="carta__lead">
+        Estamos preparando nossa carta completa para você folhear por aqui —
+        dos rótulos do dia a dia àquele que você não esperava encontrar no
+        interior. <b>Em breve, online.</b>
+      </p>
+      <p class="carta__note">
+        Enquanto isso, não precisa de ocasião pra abrir um bom vinho: é só
+        chegar e pedir — a gente ajuda a escolher a garrafa certa pra sua mesa.
+      </p>
+
+      <div class="carta__cta">
+        <a class="btn btn--gold" href="/cardapio">Ver o cardápio</a>
+        <a class="btn btn--line" href="/#visite">Como chegar</a>
+      </div>
+
+      <a class="carta__back" href="/">← Voltar ao início</a>
+    </section>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .carta {
+    min-height: 70svh;
+    display: flex;
+    align-items: center;
+    padding-block: var(--section);
+  }
+  .carta__inner { max-width: 56ch; }
+  .carta__title { font-size: var(--s-3); color: var(--marfim); margin: .8rem 0 1.6rem; }
+  .carta__lead { color: var(--dark-dim); font-size: var(--s-1); margin-bottom: 1.2rem; }
+  .carta__lead b { color: var(--ouro); }
+  .carta__note { color: var(--dark-dim); margin-bottom: 2.2rem; }
+  .carta__cta { display: flex; flex-wrap: wrap; gap: .9rem; margin-bottom: 2.5rem; }
+  .carta__back {
+    font-size: var(--s--1);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--dark-mute);
+    transition: color .2s var(--ease);
+  }
+  .carta__back:hover { color: var(--ouro); }
+</style>

@@ -1,10 +1,16 @@
 ---
 // src/components/Footer.astro
 // TODO: substituir links de contato e mapa pelos dados reais
-const whatsapp = "https://wa.me/5522000000000";
 const instagram = "https://instagram.com/quemquemoficial";
 const maps = "https://maps.google.com/?q=Qüem+Qüem+Itaperuna";
 const year = new Date().getFullYear();
+
+// O restaurante não recebe pedidos por WhatsApp — contato por telefone.
+const telefones = [
+  { label: "(22) 99938-7843", tel: "+5522999387843" },
+  { label: "(22) 99973-7300", tel: "+5522999737300" },
+  { label: "(22) 99825-2800", tel: "+5522998252800" },
+];
 ---
 
 <footer class="footer">
@@ -13,8 +19,6 @@ const year = new Date().getFullYear();
     <p class="tag">a esquina mais charmosa da cidade</p>
     <div class="social">
       <a href={instagram} target="_blank" rel="noopener">Instagram</a>
-      <span aria-hidden="true">·</span>
-      <a href={whatsapp} target="_blank" rel="noopener">WhatsApp</a>
     </div>
   </div>
 
@@ -32,9 +36,11 @@ const year = new Date().getFullYear();
       <p><a href={maps} target="_blank" rel="noopener">Como chegar →</a></p>
     </div>
     <div class="block">
-      <span class="label">Mesas</span>
-      <p>Sem reserva. É só chegar.</p>
-      <p class="mute">Nos dias cheios, chegue cedo.</p>
+      <span class="label">Telefones</span>
+      {telefones.map((t) => (
+        <p><a href={`tel:${t.tel}`}>{t.label}</a></p>
+      ))}
+      <p class="mute">Sem reserva · é só chegar</p>
     </div>
   </div>
 

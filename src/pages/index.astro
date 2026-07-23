@@ -1,7 +1,6 @@
 ---
 // src/pages/index.astro
 import Layout from "../layouts/Layout.astro";
-import PromoBar from "../components/PromoBar.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 
@@ -61,12 +60,17 @@ const favoritos = [
   },
 ];
 
-const whatsapp = "https://wa.me/5522000000000"; // TODO: número real
 const instagram = "https://instagram.com/quemquemoficial";
+
+// O restaurante não recebe pedidos por WhatsApp — contato por telefone.
+const telefones = [
+  { label: "(22) 99938-7843", tel: "+5522999387843" },
+  { label: "(22) 99973-7300", tel: "+5522999737300" },
+  { label: "(22) 99825-2800", tel: "+5522998252800" },
+];
 ---
 
 <Layout>
-  <PromoBar />
   <Header />
 
   <main id="topo">
@@ -193,7 +197,7 @@ const instagram = "https://instagram.com/quemquemoficial";
           não esperava encontrar por aqui. Sem pompa: é só pedir, e a gente ajuda
           a escolher.
         </p>
-        <a class="btn btn--line" href="#">Ver a carta de vinhos</a>
+        <a class="btn btn--line" href="/carta-vinhos">Ver a carta de vinhos</a>
       </div>
     </section>
 
@@ -244,14 +248,20 @@ const instagram = "https://instagram.com/quemquemoficial";
             <div><p>R. Dr. Edgar Pinheiro Dias, 194</p><p class="mute">Pres. Costa e Silva — Itaperuna/RJ · a 5 min da rodoviária</p></div>
           </div>
           <div class="row">
-            <span class="k">Contato</span>
+            <span class="k">Telefones</span>
             <div>
-              <p><a href={whatsapp} target="_blank" rel="noopener">WhatsApp para dúvidas e encomendas</a></p>
+              {telefones.map((t) => (
+                <p><a href={`tel:${t.tel}`}>{t.label}</a></p>
+              ))}
               <p><a href={instagram} target="_blank" rel="noopener">@quemquemoficial</a></p>
             </div>
           </div>
-          <a class="btn btn--dark" href="#">Abrir no Google Maps</a>
-          <!-- TODO: link real do Maps -->
+          <a
+            class="btn btn--dark"
+            href="https://maps.app.goo.gl/4sjMzafxckpVJZN18"
+            target="_blank"
+            rel="noopener"
+          >Abrir no Google Maps</a>
         </div>
       </div>
     </section>
