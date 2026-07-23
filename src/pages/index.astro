@@ -5,31 +5,56 @@ import PromoBar from "../components/PromoBar.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 
+// Fotos temporárias (LoremFlickr: imagens livres por palavra-chave).
+// Troque pelo caminho real (/img/arquivo.jpg) quando tiver as fotos da casa.
+const foto = {
+  hero: "/img/hero.jpeg",
+  fachada: "/img/hero.jpeg",
+  salao: "/img/salao.png",
+  chopp: "/img/chopp.png",
+  vinho: "/img/choppVinho.png",
+  coxinha: "/img/coxinha.png",
+  picanha: "/img/picanha.png",
+  adega: "/img/adega.png",
+  ig: [
+    "/img/inst1.jpeg",
+    "/img/inst2.jpeg",
+    "/img/inst3.jpeg",
+    "/img/inst4.jpeg",
+    "/img/inst5.jpeg",
+    "/img/inst6.jpeg",
+  ],
+};
+
 const favoritos = [
   {
+    src: foto.chopp,
     ph: "ph-chopp",
-    tag: "foto · chopp na tulipa",
+    alt: "Chopp na tulipa congelada",
     nome: "Chopp na tulipa congelada",
     desc: "Geladíssimo, na taça que sai direto do freezer. O ritual da casa há 40 anos.",
     selo: "O clássico",
   },
   {
+    src: foto.vinho,
     ph: "ph-vinho",
-    tag: "foto · chopp de vinho",
+    alt: "Chopp de vinho",
     nome: "Chopp de vinho",
     desc: "Refrescante e diferente de tudo — o carro-chefe que só existe aqui.",
     selo: "Só aqui",
   },
   {
+    src: foto.coxinha,
     ph: "ph-coxinha",
-    tag: "foto · coxinha",
+    alt: "Coxinha Qüem Qüem",
     nome: "Coxinha Qüem Qüem",
     desc: "A tradição da casa em versão pra dividir na mesa, com chopp do lado.",
     selo: "Pra dividir",
   },
   {
+    src: foto.picanha,
     ph: "ph-picanha",
-    tag: "foto · picanha na chapa",
+    alt: "Picanha na chapa",
     nome: "Picanha na chapa",
     desc: "Chega crepitando e serve duas pessoas com folga. Capricho de ponta a ponta.",
     selo: "Serve 2",
@@ -47,7 +72,10 @@ const instagram = "https://instagram.com/quemquemoficial";
   <main id="topo">
     <!-- ================= HERÓI ================= -->
     <section class="hero">
-      <div class="media ph-salao hero__bg"><span class="ph-tag">foto · salão à noite</span></div>
+      <div class="media ph-salao hero__bg">
+        <img src={foto.hero} alt="" loading="eager" />
+        <!-- foto real: salão à noite / fachada iluminada -->
+      </div>
       <div class="container hero__inner">
         <p class="script fadein d1">Bem-vindo à esquina</p>
         <h1 class="h-caps hero__title fadein d2">
@@ -59,7 +87,7 @@ const instagram = "https://instagram.com/quemquemoficial";
           e o dono de olho na cozinha. Tradição servida todos os dias.
         </p>
         <div class="hero__cta fadein d4">
-          <a class="btn btn--gold" href="#cardapio">Explorar o cardápio</a>
+          <a class="btn btn--gold" href="/cardapio">Explorar o cardápio</a>
           <a class="btn btn--line" href="#visite">Como chegar</a>
         </div>
       </div>
@@ -73,8 +101,18 @@ const instagram = "https://instagram.com/quemquemoficial";
     <section class="story on-lite" id="historia">
       <div class="container story__inner">
         <div class="story__collage reveal" aria-hidden="true">
-          <div class="frame frame--a"><div class="media ph-fachada"><span class="ph-tag">foto · fachada</span></div></div>
-          <div class="frame frame--b"><div class="media ph-salao2"><span class="ph-tag">foto · salão</span></div></div>
+          <div class="frame frame--a">
+            <div class="media ph-fachada">
+              <img src={foto.fachada} alt="" loading="lazy" />
+              <!-- foto real: fachada -->
+            </div>
+          </div>
+          <div class="frame frame--b">
+            <div class="media ph-salao2">
+              <img src={foto.salao} alt="" loading="lazy" />
+              <!-- foto real: salão / mesas -->
+            </div>
+          </div>
           <div class="badge">
             <svg viewBox="0 0 120 120">
               <defs>
@@ -121,7 +159,9 @@ const instagram = "https://instagram.com/quemquemoficial";
           {
             favoritos.map((f) => (
               <article class="card reveal">
-                <div class={`media ${f.ph}`}><span class="ph-tag">{f.tag}</span></div>
+                <div class={`media ${f.ph}`}>
+                  <img src={f.src} alt={f.alt} loading="lazy" />
+                </div>
                 <span class="card__selo">{f.selo}</span>
                 <h3 class="card__nome">{f.nome}</h3>
                 <p class="card__desc">{f.desc}</p>
@@ -132,7 +172,7 @@ const instagram = "https://instagram.com/quemquemoficial";
 
         <div class="menu-fav__cta reveal">
           <p class="menu-fav__nota">Quase tudo no cardápio serve duas pessoas — venha com fome e com companhia.</p>
-          <a class="btn btn--line" href="#">Ver o cardápio completo</a>
+          <a class="btn btn--line" href="/cardapio">Ver o cardápio completo</a>
           <!-- TODO: apontar para /cardapio quando a página existir -->
         </div>
       </div>
@@ -140,7 +180,10 @@ const instagram = "https://instagram.com/quemquemoficial";
 
     <!-- ================= ADEGA (escuro profundo) ================= -->
     <section class="adega" id="adega">
-      <div class="media ph-adegabg adega__bg"><span class="ph-tag">foto · adega</span></div>
+      <div class="media ph-adegabg adega__bg">
+        <img src={foto.adega} alt="" loading="lazy" />
+        <!-- foto real: adega / garrafas -->
+      </div>
       <div class="container adega__inner reveal">
         <p class="script">A adega</p>
         <h2 class="h-caps adega__title">Uma carta que não devia<br />caber no interior.</h2>
@@ -161,12 +204,19 @@ const instagram = "https://instagram.com/quemquemoficial";
         <h2 class="h-caps">Momentos da esquina</h2>
       </div>
       <div class="strip reveal">
-        <a class="media ph-a" href={instagram} target="_blank" rel="noopener" aria-label="Instagram do Qüem Qüem"></a>
-        <a class="media ph-b" href={instagram} target="_blank" rel="noopener" aria-label="Instagram do Qüem Qüem"></a>
-        <a class="media ph-c" href={instagram} target="_blank" rel="noopener" aria-label="Instagram do Qüem Qüem"></a>
-        <a class="media ph-d" href={instagram} target="_blank" rel="noopener" aria-label="Instagram do Qüem Qüem"></a>
-        <a class="media ph-c" href={instagram} target="_blank" rel="noopener" aria-label="Instagram do Qüem Qüem"></a>
-        <a class="media ph-a" href={instagram} target="_blank" rel="noopener" aria-label="Instagram do Qüem Qüem"></a>
+        {
+          foto.ig.map((src, i) => (
+            <a
+              class={`media ph-${"abcd"[i % 4]}`}
+              href={instagram}
+              target="_blank"
+              rel="noopener"
+              aria-label="Instagram do Qüem Qüem"
+            >
+              <img src={src} alt="" loading="lazy" />
+            </a>
+          ))
+        }
       </div>
       <div class="container momentos__cta reveal">
         <a class="btn btn--darkline" href={instagram} target="_blank" rel="noopener">Seguir @quemquemoficial</a>
@@ -222,10 +272,10 @@ const instagram = "https://instagram.com/quemquemoficial";
   .hero__bg { position: absolute; inset: 0; }
   .hero__bg::after {
     background:
-      linear-gradient(180deg, rgba(20,14,12,.55) 0%, rgba(20,14,12,.25) 40%, rgba(20,14,12,.75) 100%),
-      linear-gradient(100deg, rgba(20,14,12,.6) 0%, transparent 60%);
+      linear-gradient(180deg, rgba(20,14,12,.6) 0%, rgba(20,14,12,.35) 40%, rgba(20,14,12,.8) 100%),
+      linear-gradient(100deg, rgba(20,14,12,.65) 0%, transparent 60%);
   }
-  .hero__inner { position: relative; padding-block: clamp(7rem, 14vh, 10rem) 3rem; }
+  .hero__inner { position: relative; z-index: 2; padding-block: clamp(7rem, 14vh, 10rem) 3rem; }
   .hero__title { font-size: var(--s-4); color: var(--marfim); margin-top: 1.1rem; max-width: 14ch; }
   .hero__title em { font-style: italic; color: var(--ouro); text-transform: none; letter-spacing: 0; }
   .hero__lead { max-width: 44ch; color: var(--dark-dim); margin-top: 1.5rem; }
@@ -233,6 +283,7 @@ const instagram = "https://instagram.com/quemquemoficial";
 
   .hero__foot {
     position: relative;
+    z-index: 2;
     margin-top: auto;
     padding-bottom: 2rem;
     display: flex;
@@ -357,9 +408,9 @@ const instagram = "https://instagram.com/quemquemoficial";
   .adega { position: relative; padding-block: var(--section); overflow: hidden; }
   .adega__bg { position: absolute; inset: 0; }
   .adega__bg::after {
-    background: linear-gradient(90deg, rgba(20,13,15,.95) 0%, rgba(20,13,15,.8) 45%, rgba(59,34,56,.5) 100%);
+    background: linear-gradient(90deg, rgba(20,13,15,.96) 0%, rgba(20,13,15,.85) 45%, rgba(59,34,56,.55) 100%);
   }
-  .adega__inner { position: relative; max-width: 56ch; }
+  .adega__inner { position: relative; z-index: 2; max-width: 56ch; }
   .adega__title { font-size: var(--s-3); color: var(--marfim); margin: .9rem 0 1.4rem; }
   .adega__text { color: var(--dark-dim); margin-bottom: 2rem; }
 
