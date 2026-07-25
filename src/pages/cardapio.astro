@@ -1,41 +1,667 @@
 ---
+// src/pages/cardapio.astro
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { pratos, categorias, ocasioes, filtros } from "../data/cardapio";
+import { foto } from "../lib/img";
+
+const grupos = categorias
+  .map((cat) => ({ cat, itens: pratos.filter((p) => p.categoria === cat.nome) }))
+  .filter((g) => g.itens.length > 0);
+
+// quantos pratos cada ocasião mostra — vai no cartão, pra deixar claro
+// que o botão filtra o cardápio
+const contaOcasiao = (id: string) =>
+  pratos.filter((p) => (p.ocasioes as string[]).includes(id)).length;
 ---
 
-<html lang="pt-BR">
-  <head>
-    <title>Cardápio | QuemQuem</title>
-    <meta name="description" content="Veja o cardápio do restaurante QuemQuem" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<Layout
+  title="Cardápio — Qüem Qüem"
+  description="O cardápio do Qüem Qüem: petiscos, carnes, massas, peixes e sobremesas. Quase tudo serve duas pessoas. Filtre pela ocasião da sua visita."
+>
+  <Header />
 
-    <style>
-      body {
-        margin: 0;
-        background: #2E211B;
-        color: #F4EFE8;
-        font-family: system-ui, sans-serif;
+  <main id="topo">
+    <!-- ======================= CABEÇALHO ======================= -->
+    <section class="ch">
+      <div class="container">
+        <p class="script">O cardápio</p>
+        <h1 class="h-caps ch__title">Nossa mesa, do começo ao doce.</h1>
+        <p class="ch__sub">
+          {pratos.length} pratos em {grupos.length} seções. Quase tudo serve duas
+          pessoas — venha com fome e com companhia.
+        </p>
+        <a class="ch__seta" href="#monte">
+          Escolher pela ocasião <span aria-hidden="true">↓</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ======================= MONTE SUA MESA =======================
+         Bloco explicativo: quem chega pela primeira vez precisa entender
+         que estes cartões filtram o cardápio logo abaixo. -->
+    <section class="monte" id="monte">
+      <div class="container">
+        <div class="monte__head">
+          <span class="passo">Passo 1</span>
+          <h2 class="h-caps monte__title">Como vai ser a sua visita?</h2>
+          <p class="monte__ajuda">
+            Toque na opção que combina com o seu momento e o cardápio abaixo se
+            ajusta na hora, mostrando só os pratos que fazem sentido. É só uma
+            ajuda pra escolher — nada fica escondido, e você pode voltar a ver
+            tudo quando quiser.
+          </p>
+        </div>
+
+        <div class="occ" role="group" aria-label="Escolha a ocasião">
+          {ocasioes.map((o) => (
+            <button class="occ__card" data-occ={o.id} aria-pressed="false">
+              <span class="shot occ__shot">
+                <img src={foto(o.img, 720)} alt="" loading="lazy" decoding="async" />
+              </span>
+              <span class="occ__body">
+                <span class="occ__label">{o.label}</span>
+                <span class="occ__desc">{o.desc}</span>
+                <span class="occ__n">{contaOcasiao(o.id)} pratos</span>
+              </span>
+              <span class="occ__check" aria-hidden="true">✓</span>
+            </button>
+          ))}
+        </div>
+
+        <div class="refine">
+          <div class="refine__head">
+            <span class="passo passo--2">Passo 2</span>
+            <p class="refine__title">
+              Tem alguma preferência? <span class="refine__opt">(opcional)</span>
+            </p>
+            <p class="refine__ajuda">
+              Marque quantas quiser para estreitar a lista. Desmarque para voltar.
+            </p>
+          </div>
+          <div class="chips" role="group" aria-label="Filtrar por preferência">
+            {filtros.map((f) => (
+              <button class="chip" data-tag={f.id} aria-pressed="false">{f.label}</button>
+            ))}
+          </div>
+        </div>
+
+        <p class="estado" aria-live="polite">
+          Mostrando <b data-count>{pratos.length}</b> de {pratos.length} pratos
+          <button class="estado__reset" data-reset hidden>Ver tudo de novo</button>
+        </p>
+      </div>
+    </section>
+
+    <!-- ======================= NAVEGAÇÃO DAS SEÇÕES ======================= -->
+    <nav class="catnav" data-catnav aria-label="Seções do cardápio">
+      <div class="container catnav__in">
+        <span class="catnav__lbl">Ir para</span>
+        <ul class="catnav__list">
+          <li>
+            <a href="#monte" class="catnav__link catnav__link--back">Ocasiões</a>
+          </li>
+          {grupos.map((g) => (
+            <li>
+              <a href={`#${g.cat.slug}`} class="catnav__link" data-navlink={g.cat.slug}>
+                {g.cat.nome}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <button class="catnav__pill" data-pill hidden>
+          <span data-pill-label></span>
+          <span class="catnav__x" aria-hidden="true">✕</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ======================= CORPO DO CARDÁPIO ======================= -->
+    <section class="body">
+      <div class="container">
+        <p class="nota-exemplo">
+          Itens e preços de exemplo, para demonstração — serão substituídos pelo
+          cardápio real da casa. As fotos sem marca d'água também são provisórias.
+        </p>
+      </div>
+
+      {grupos.map((g) => (
+        <section class="cat" id={g.cat.slug} data-cat={g.cat.slug}>
+          <div class="container">
+            <div class="cat__band">
+              <span class="shot cat__shot">
+                <img src={foto(g.cat.img, 1400)} alt="" loading="lazy" decoding="async" />
+              </span>
+              <div class="cat__over">
+                <h2 class="h-caps cat__title">{g.cat.nome}</h2>
+                <p class="cat__resumo">{g.cat.resumo}</p>
+                <span class="cat__n"><b data-cat-count>{g.itens.length}</b> pratos</span>
+              </div>
+            </div>
+
+            <ul class="lista">
+              {g.itens.map((p) => (
+                <li
+                  class="dish"
+                  data-oc={p.ocasioes.join(" ")}
+                  data-tags={[...p.tags, p.serve === 2 ? "serve-2" : ""].join(" ").trim()}
+                >
+                  {p.img ? (
+                    <span class="shot dish__shot">
+                      <img src={foto(p.img, 320)} alt={p.nome} loading="lazy" decoding="async" />
+                    </span>
+                  ) : (
+                    <span class="dish__shot dish__shot--sem" aria-hidden="true">ü</span>
+                  )}
+
+                  <div class="dish__main">
+                    <div class="dish__head">
+                      <h3 class="dish__name">{p.nome}</h3>
+                      <span class="dish__dots"></span>
+                      <span class="dish__price">R$ {p.preco}</span>
+                    </div>
+
+                    <p class="dish__desc">{p.descricao}</p>
+
+                    <div class="dish__meta">
+                      {p.destaque && <span class="tagline tagline--star">★ Assinatura da casa</span>}
+                      {p.serve === 2 && <span class="tagline">Serve 2 pessoas</span>}
+                      {p.tags.includes("vegetariano") && <span class="tagline">Vegetariano</span>}
+                      {p.tags.includes("sem-gluten") && <span class="tagline">Sem glúten</span>}
+                    </div>
+
+                    {p.harmoniza && (
+                      <p class="dish__pair"><span>Vai bem com</span> {p.harmoniza}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ))}
+
+      <div class="container">
+        <div class="vazio" data-empty hidden>
+          <p>Nenhum prato com essa combinação de filtros.</p>
+          <button class="btn btn--darkline" data-reset>Ver o cardápio todo</button>
+        </div>
+
+        <div class="rodape">
+          <p>Não trabalhamos com reservas — é só chegar. Nos dias cheios, vale vir cedo.</p>
+          <div class="rodape__btns">
+            <a class="btn btn--dark" href="/#visite">Como chegar</a>
+            <a class="btn btn--darkline" href="/carta-vinhos">Ver a carta de vinhos</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <button class="topo-btn" data-top hidden aria-label="Voltar ao topo">↑</button>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* página em tom claro para leitura longa */
+  main { background: var(--lite-bg); color: var(--lite-text); }
+
+  /* slot de foto: mais limpo que o .media global (comida precisa
+     parecer apetitosa, sem o grayscale/sépia das seções de clima) */
+  .shot { position: relative; overflow: hidden; display: block; background: #2a1e18 center / cover no-repeat; }
+  .shot > img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    filter: saturate(1.04) contrast(1.03);
+    transition: transform .6s var(--ease);
+  }
+
+  /* ---------------- cabeçalho ---------------- */
+  .ch {
+    background: var(--dark-bg);
+    color: var(--dark-text);
+    padding-block: clamp(3.5rem, 8vw, 6rem) clamp(2.5rem, 5vw, 4rem);
+    text-align: center;
+    border-bottom: 1px solid var(--dark-line);
+  }
+  .ch .script { justify-content: center; color: var(--champagne); }
+  .ch .script::after { display: none; }
+  .ch__title { font-size: var(--s-3); color: var(--marfim); margin-top: .8rem; }
+  .ch__sub { color: var(--dark-dim); max-width: 46ch; margin: 1rem auto 0; }
+  .ch__seta {
+    display: inline-flex; align-items: center; gap: .55rem;
+    margin-top: 1.8rem;
+    font-size: var(--s--1); letter-spacing: .16em; text-transform: uppercase;
+    color: var(--ouro);
+    border-bottom: 1px solid rgba(216,190,135,.4);
+    padding-bottom: .3rem;
+    transition: color .2s var(--ease), border-color .2s var(--ease);
+  }
+  .ch__seta:hover { color: var(--marfim); border-color: var(--marfim); }
+  .ch__seta span { transition: transform .3s var(--ease); }
+  .ch__seta:hover span { transform: translateY(3px); }
+
+  /* ---------------- monte sua mesa ---------------- */
+  .monte {
+    background: var(--lite-bg-2);
+    border-bottom: 1px solid var(--lite-line);
+    padding-block: clamp(2.5rem, 6vw, 4.5rem);
+    scroll-margin-top: 10rem;
+  }
+  .monte__head { max-width: 60ch; }
+  .passo {
+    display: inline-block;
+    font-size: .62rem; letter-spacing: .28em; text-transform: uppercase;
+    font-weight: 700;
+    color: var(--marfim); background: var(--cafe);
+    padding: .3rem .7rem;
+  }
+  .passo--2 { background: var(--bronze); }
+  .monte__title { font-size: var(--s-2); color: var(--cafe); margin: .9rem 0 .8rem; }
+  .monte__ajuda { color: var(--lite-dim); font-size: var(--s--1); line-height: 1.7; }
+
+  .occ {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(.8rem, 1.6vw, 1.3rem);
+    margin-top: clamp(1.6rem, 3vw, 2.4rem);
+  }
+  .occ__card {
+    position: relative;
+    display: flex; flex-direction: column;
+    text-align: left;
+    padding: 0;
+    background: #fff;
+    border: 1px solid var(--lite-line);
+    cursor: pointer;
+    font-family: var(--body);
+    overflow: hidden;
+    transition: border-color .25s var(--ease), box-shadow .25s var(--ease), transform .25s var(--ease);
+  }
+  .occ__card:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(46,33,27,.16); border-color: var(--champagne); }
+  .occ__card:focus-visible { outline: 2px solid var(--bronze); outline-offset: 2px; }
+  .occ__shot { aspect-ratio: 16 / 10; }
+  .occ__card:hover .shot > img { transform: scale(1.05); }
+  .occ__body { padding: .95rem 1rem 1.1rem; display: grid; gap: .35rem; }
+  .occ__label { font-family: var(--display); font-size: var(--s-1); color: var(--cafe); line-height: 1.2; }
+  .occ__desc { font-size: var(--s--1); color: var(--lite-dim); line-height: 1.55; }
+  .occ__n {
+    font-size: .62rem; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--bronze); font-weight: 600; margin-top: .2rem;
+  }
+  .occ__check {
+    position: absolute; top: .6rem; right: .6rem;
+    width: 1.7rem; height: 1.7rem;
+    display: grid; place-items: center;
+    background: var(--cafe); color: var(--ouro);
+    font-size: .85rem;
+    opacity: 0; transform: scale(.6);
+    transition: opacity .2s var(--ease), transform .2s var(--ease);
+  }
+  .occ__card[aria-pressed="true"] { border-color: var(--cafe); box-shadow: 0 0 0 2px var(--cafe); }
+  .occ__card[aria-pressed="true"] .occ__check { opacity: 1; transform: none; }
+
+  @media (max-width: 900px) { .occ { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 460px) {
+    .occ { grid-template-columns: 1fr; }
+    .occ__card { flex-direction: row; align-items: stretch; }
+    .occ__shot { aspect-ratio: 1; width: 34%; flex-shrink: 0; }
+    .occ__body { padding: .8rem .9rem; }
+  }
+
+  /* passo 2 */
+  .refine {
+    margin-top: clamp(1.8rem, 3.5vw, 2.6rem);
+    padding-top: clamp(1.4rem, 3vw, 2rem);
+    border-top: 1px solid var(--lite-line);
+  }
+  .refine__title { font-family: var(--display); font-size: var(--s-1); color: var(--cafe); margin-top: .7rem; }
+  .refine__opt { font-style: italic; color: var(--lite-mute); font-size: .8em; }
+  .refine__ajuda { font-size: var(--s--1); color: var(--lite-dim); margin-top: .2rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+  .chip {
+    font-family: var(--body);
+    font-size: .78rem; letter-spacing: .04em;
+    padding: .5rem .95rem;
+    border-radius: 999px;
+    border: 1px solid rgba(46,33,27,.25);
+    background: transparent;
+    color: var(--lite-dim);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
+  }
+  .chip:hover { border-color: var(--bronze); color: var(--bronze); }
+  .chip[aria-pressed="true"] { background: var(--cafe); border-color: var(--cafe); color: var(--marfim); }
+  .chip[aria-pressed="true"]::before { content: "✓ "; color: var(--ouro); }
+
+  .estado {
+    margin-top: clamp(1.4rem, 3vw, 2rem);
+    font-size: var(--s--1);
+    color: var(--lite-dim);
+    display: flex; align-items: center; gap: .9rem; flex-wrap: wrap;
+  }
+  .estado b { color: var(--cafe); font-weight: 700; font-size: 1.15em; }
+  .estado__reset {
+    font-family: var(--body); font-size: var(--s--1);
+    background: none; border: none; cursor: pointer;
+    color: var(--bronze); font-weight: 600;
+    border-bottom: 1px solid currentColor;
+    padding: 0 0 1px;
+  }
+  .estado__reset:hover { color: var(--cafe); }
+
+  /* ---------------- navegação das seções (sticky) ---------------- */
+  .catnav {
+    position: sticky;
+    top: 5.25rem; /* altura do header */
+    z-index: 30;
+    background: color-mix(in srgb, var(--lite-bg) 94%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--lite-line);
+  }
+  .catnav__in { display: flex; align-items: center; gap: .9rem; padding-block: .7rem; }
+  .catnav__lbl {
+    flex-shrink: 0;
+    font-size: .6rem; letter-spacing: .26em; text-transform: uppercase;
+    color: var(--lite-mute); font-weight: 600;
+  }
+  .catnav__list {
+    display: flex; gap: .3rem; list-style: none; padding: 0; margin: 0;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .catnav__list::-webkit-scrollbar { display: none; }
+  .catnav__link {
+    display: block;
+    font-size: var(--s--1);
+    padding: .4rem .75rem;
+    color: var(--lite-dim);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    white-space: nowrap;
+    transition: color .2s var(--ease), background-color .2s var(--ease), border-color .2s var(--ease);
+  }
+  .catnav__link:hover { color: var(--cafe); border-color: rgba(46,33,27,.2); }
+  .catnav__link.is-current { background: var(--cafe); color: var(--marfim); border-color: var(--cafe); }
+  .catnav__link[aria-disabled="true"] { opacity: .35; pointer-events: none; }
+  .catnav__link--back { color: var(--bronze); font-style: italic; }
+
+  .catnav__pill {
+    margin-left: auto; flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: .5rem;
+    font-family: var(--body); font-size: .72rem;
+    letter-spacing: .06em;
+    padding: .4rem .5rem .4rem .8rem;
+    background: var(--champagne); color: var(--preto);
+    border: none; border-radius: 999px; cursor: pointer;
+    transition: background-color .2s var(--ease);
+  }
+  .catnav__pill:hover { background: var(--ouro); }
+  .catnav__x { font-size: .8em; opacity: .7; }
+  /* o `display` acima vence o [hidden] do navegador — sem isto a pílula
+     aparece vazia mesmo sem filtro ativo */
+  .catnav__pill[hidden] { display: none; }
+
+  @media (max-width: 760px) {
+    .catnav__in { flex-wrap: wrap; gap: .5rem .7rem; }
+    .catnav__lbl { display: none; }
+    .catnav__list { order: 2; width: 100%; }
+    .catnav__pill { margin-left: 0; order: 1; }
+  }
+
+  /* ---------------- corpo ---------------- */
+  .body { padding-block: clamp(2rem, 4vw, 3rem) var(--section); }
+  .nota-exemplo {
+    font-size: var(--s--1);
+    color: var(--lite-mute);
+    font-style: italic;
+    text-align: center;
+    max-width: 62ch;
+    margin: 0 auto clamp(2rem, 4vw, 3rem);
+  }
+
+  .cat { scroll-margin-top: 10rem; }
+  .cat[hidden] { display: none; }
+  .cat + .cat { margin-top: clamp(3rem, 6vw, 5rem); }
+
+  .cat__band { position: relative; margin-bottom: clamp(1.6rem, 3vw, 2.4rem); }
+  .cat__shot { aspect-ratio: 21 / 6; }
+  .cat__shot::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(20,14,12,.86) 0%, rgba(20,14,12,.6) 55%, rgba(20,14,12,.25) 100%);
+  }
+  .cat__over {
+    position: absolute; inset: 0; z-index: 2;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: clamp(1rem, 3vw, 2.4rem);
+  }
+  .cat__title { font-size: var(--s-2); color: var(--marfim); }
+  .cat__resumo { color: var(--dark-dim); font-size: var(--s--1); max-width: 44ch; margin-top: .4rem; }
+  .cat__n {
+    font-size: .6rem; letter-spacing: .24em; text-transform: uppercase;
+    color: var(--champagne); font-weight: 600; margin-top: .7rem;
+  }
+  @media (max-width: 700px) {
+    .cat__shot { aspect-ratio: 16 / 9; }
+    .cat__resumo { display: none; }
+  }
+
+  .lista {
+    list-style: none; padding: 0; margin: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(1.2rem, 2.5vw, 2rem) clamp(2rem, 5vw, 4rem);
+  }
+  @media (max-width: 860px) { .lista { grid-template-columns: 1fr; } }
+
+  .dish { display: grid; grid-template-columns: 5.5rem 1fr; gap: 1.1rem; align-items: start; }
+  .dish[hidden] { display: none; }
+
+  .dish__shot { aspect-ratio: 1; width: 5.5rem; }
+  /* prato ainda sem foto: monograma discreto no tom do papel, pra não
+     parecer imagem quebrada nem competir com as fotos de verdade */
+  .dish__shot--sem {
+    display: grid; place-items: center;
+    font-family: var(--display);
+    font-size: 1.9rem; line-height: 1;
+    color: rgba(140,98,57,.4);
+    background: var(--lite-bg-2);
+    border: 1px solid var(--lite-line);
+    user-select: none;
+  }
+  .dish:hover .shot > img { transform: scale(1.06); }
+
+  .dish__head { display: flex; align-items: baseline; gap: .6rem; }
+  .dish__name {
+    font-family: var(--display);
+    font-size: var(--s-1);
+    font-weight: 480;
+    color: var(--cafe);
+    flex-shrink: 0;
+    max-width: 74%;
+  }
+  .dish__dots { flex: 1; border-bottom: 1px dotted rgba(46,33,27,.32); transform: translateY(-3px); }
+  .dish__price { font-family: var(--display); font-size: var(--s-1); color: var(--cafe); white-space: nowrap; }
+
+  .dish__desc { color: var(--lite-dim); font-size: var(--s--1); line-height: 1.6; margin-top: .35rem; max-width: 46ch; }
+
+  .dish__meta { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .6rem; }
+  .tagline {
+    font-size: .58rem; letter-spacing: .14em; text-transform: uppercase;
+    font-weight: 600;
+    color: var(--bronze);
+    border: 1px solid rgba(140,98,57,.35);
+    padding: .16rem .45rem;
+    white-space: nowrap;
+  }
+  .tagline--star { color: var(--marfim); background: var(--bordo); border-color: var(--bordo); }
+
+  .dish__pair { margin-top: .5rem; font-size: var(--s--1); color: #a9803f; font-style: italic; }
+  .dish__pair span {
+    font-style: normal; font-size: .62rem; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--bronze); margin-right: .4rem;
+  }
+
+  .vazio { text-align: center; padding: 3rem 0; color: var(--lite-dim); display: grid; gap: 1.2rem; place-items: center; }
+  .vazio[hidden] { display: none; }
+
+  .rodape {
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+    padding-top: 2rem;
+    border-top: 1px solid var(--lite-line);
+    text-align: center;
+    display: grid; gap: 1.3rem; place-items: center;
+  }
+  .rodape p { color: var(--lite-dim); font-family: var(--display); font-style: italic; font-size: var(--s-1); }
+  .rodape__btns { display: flex; flex-wrap: wrap; gap: .8rem; justify-content: center; }
+
+  /* ---------------- voltar ao topo ---------------- */
+  .topo-btn {
+    position: fixed; right: clamp(1rem, 3vw, 2rem); bottom: clamp(1rem, 3vw, 2rem);
+    z-index: 40;
+    width: 2.9rem; height: 2.9rem;
+    display: grid; place-items: center;
+    background: var(--cafe); color: var(--marfim);
+    border: 1px solid var(--champagne);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.1rem;
+    box-shadow: 0 8px 22px rgba(26,26,26,.3);
+    transition: background-color .2s var(--ease), transform .2s var(--ease);
+  }
+  .topo-btn:hover { background: var(--preto); transform: translateY(-2px); }
+  .topo-btn[hidden] { display: none; }
+
+  @media (max-width: 760px) {
+    .monte, .cat { scroll-margin-top: 12rem; }
+  }
+</style>
+
+<script>
+  const dishes = Array.from(document.querySelectorAll<HTMLElement>(".dish"));
+  const cats = Array.from(document.querySelectorAll<HTMLElement>("[data-cat]"));
+  const countEl = document.querySelector<HTMLElement>("[data-count]");
+  const emptyEl = document.querySelector<HTMLElement>("[data-empty]");
+  const resets = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-reset]"));
+  const occBtns = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-occ]"));
+  const tagBtns = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-tag]"));
+  const navLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>("[data-navlink]"));
+  const pill = document.querySelector<HTMLButtonElement>("[data-pill]");
+  const pillLabel = document.querySelector<HTMLElement>("[data-pill-label]");
+  const topBtn = document.querySelector<HTMLButtonElement>("[data-top]");
+
+  const suave = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let occ = "";                       // "" = todas as ocasiões
+  const active = new Set<string>();   // filtros do passo 2
+
+  const apply = () => {
+    let shown = 0;
+
+    dishes.forEach((d) => {
+      const dOcc = (d.dataset.oc || "").split(" ");
+      const dTags = (d.dataset.tags || "").split(" ");
+      let ok = !occ || dOcc.includes(occ);
+      if (ok) {
+        for (const f of active) {
+          if (!dTags.includes(f)) { ok = false; break; }
+        }
       }
+      d.hidden = !ok;
+      if (ok) shown++;
+    });
 
-      header {
-        padding: 16px;
-        text-align: center;
-        background: #2E211B;
-      }
+    // esconde seções vazias e atualiza a contagem de cada uma
+    cats.forEach((c) => {
+      const visiveis = c.querySelectorAll(".dish:not([hidden])").length;
+      c.hidden = visiveis === 0;
+      const n = c.querySelector<HTMLElement>("[data-cat-count]");
+      if (n) n.textContent = String(visiveis);
+      // desativa o link da nav quando a seção não tem nada
+      const link = navLinks.find((l) => l.dataset.navlink === c.dataset.cat);
+      if (link) link.setAttribute("aria-disabled", String(visiveis === 0));
+    });
 
-      a {
-        color: #C9A56A;
-        font-weight: 600;
-      }
+    if (countEl) countEl.textContent = String(shown);
+    if (emptyEl) emptyEl.hidden = shown > 0;
 
-      iframe {
-        width: 100%;
-        height: calc(100vh - 80px);
-        border: none;
-        background: white;
-      }
-    </style>
-  </head>
+    // etiqueta do filtro ativo, sempre visível na barra grudada
+    const filtrando = Boolean(occ) || active.size > 0;
+    const nomeOcc = occ ? occBtns.find((b) => b.dataset.occ === occ)?.querySelector(".occ__label")?.textContent?.trim() : "";
+    const partes = [nomeOcc, ...Array.from(active).map((t) => tagBtns.find((b) => b.dataset.tag === t)?.textContent?.trim())]
+      .filter(Boolean);
+    if (pill && pillLabel) {
+      pill.hidden = !filtrando;
+      pillLabel.textContent = partes.join(" · ");
+    }
+    resets.forEach((r) => { if (r.hasAttribute("hidden") !== !filtrando) r.hidden = !filtrando; });
 
-  <body>
-    <iframe src="/cardapio.pdf" title="Cardápio QuemQuem"></iframe>
-  </body>
-</html>
+    spy();
+  };
+
+  const irParaResultados = () => {
+    const alvo = cats.find((c) => !c.hidden);
+    alvo?.scrollIntoView({ behavior: suave ? "smooth" : "auto", block: "start" });
+  };
+
+  // ocasião: seleção única, e clicar de novo desmarca
+  occBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.occ || "";
+      occ = occ === id ? "" : id;
+      occBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.occ === occ)));
+      apply();
+      if (occ) irParaResultados();
+    });
+  });
+
+  // filtros do passo 2: múltipla escolha
+  tagBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tag = btn.dataset.tag!;
+      if (active.has(tag)) active.delete(tag);
+      else active.add(tag);
+      btn.setAttribute("aria-pressed", String(active.has(tag)));
+      apply();
+    });
+  });
+
+  const limpar = () => {
+    occ = "";
+    active.clear();
+    occBtns.forEach((b) => b.setAttribute("aria-pressed", "false"));
+    tagBtns.forEach((b) => b.setAttribute("aria-pressed", "false"));
+    apply();
+  };
+  resets.forEach((r) => r.addEventListener("click", limpar));
+  pill?.addEventListener("click", limpar);
+
+  // ---- destaca na barra a seção que está na tela ----
+  let raf = 0;
+  function spy() {
+    const linha = 170; // header + barra de seções
+    let atual: HTMLElement | null = null;
+    for (const c of cats) {
+      if (c.hidden) continue;
+      if (c.getBoundingClientRect().top - linha <= 0) atual = c;
+    }
+    navLinks.forEach((l) => l.classList.toggle("is-current", !!atual && l.dataset.navlink === atual.dataset.cat));
+  }
+
+  const onScroll = () => {
+    if (topBtn) topBtn.hidden = window.scrollY < 700;
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = 0; spy(); });
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  topBtn?.addEventListener("click", () =>
+    window.scrollTo({ top: 0, behavior: suave ? "smooth" : "auto" }),
+  );
+
+  apply();
+</script>
