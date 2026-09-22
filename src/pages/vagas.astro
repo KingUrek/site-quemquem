@@ -1,830 +1,204 @@
 ---
-// src/pages/vagas.astro
-// Fluxo de candidatura em etapas (uma pergunta ou um grupo pequeno por tela).
-// Sem envio real por enquanto: tudo fica no localStorage do candidato.
-// Textos, vagas e horários: src/data/vagas.ts
 import Layout from "../layouts/Layout.astro";
-import {
-  vagas, local, triagem, periodos, bloqueia, diasFechado, diasSemNoite, whatsappVagas,
-} from "../data/vagas";
-
-const cfg = { vagas, local, triagem, periodos, bloqueia, diasFechado, diasSemNoite, whatsappVagas };
+import { vagas, local, disponibilidade, recebimento } from "../data/vagas";
+const cfg = { vagas, local, disponibilidade, recebimento };
 ---
 
-<Layout
-  title="Vagas — Qüem Qüem"
-  description="Estamos contratando em Itaperuna: garçom/garçonete, auxiliar de cozinha e churrasqueiro. Candidate-se em poucos minutos."
->
+<Layout title="Trabalhe no Qüem Qüem · Vagas em Itaperuna" description="Vagas para garçom/garçonete, auxiliar de cozinha e churrasqueiro em Itaperuna. Não precisa ter experiência. Saiba como entregar seu currículo.">
   <div class="app">
     <header class="top">
-      <a href="/" class="brand" aria-label="Qüem Qüem — voltar ao site">
-        <span class="brand__name">Q<span class="u">ü</span>em Q<span class="u">ü</span>em</span>
-        <span class="brand__sub">restaurante · bar</span>
-      </a>
-      <span class="top__tag">Estamos contratando</span>
+      <a href="/" class="brand" aria-label="Qüem Qüem — voltar ao site">Q<span>ü</span>em Q<span>ü</span>em<small>restaurante · bar</small></a>
+      <span class="tag">Vagas abertas</span>
     </header>
-
-    <div class="prog" data-prog hidden>
-      <div class="prog__bar"><span data-prog-fill></span></div>
-      <p class="prog__txt"><b data-prog-fase></b> <span data-prog-sub></span></p>
+    <div class="progress" data-progress hidden>
+      <p data-progress-text></p>
+      <progress max="7" value="1" aria-label="Progresso da candidatura"></progress>
     </div>
+    <main>
+      <noscript><p class="notice">Ative o JavaScript para responder às perguntas. Você também pode levar seu currículo ao Qüem Qüem: {local.rua}, {local.cidade}. Recebemos de terça a domingo, das 8h às 15h.</p></noscript>
 
-    <main class="steps">
-      <!-- ============ 1. VAGA / ENTRADA ============ -->
-      <section class="step" data-step="inicio">
-        <p class="script">Trabalhe com a gente</p>
-        <h1 class="h-caps t1" tabindex="-1">Estamos contratando</h1>
-        <p class="lead">Vagas abertas no Qüem Qüem, em <b>Itaperuna-RJ</b>:</p>
-        <ul class="vagas">
-          {vagas.map((v) => (
-            <li><b>{v.nome}</b><span>{v.resumo}</span></li>
-          ))}
-        </ul>
-        <p class="aviso">
-          O processo começa com algumas perguntas rápidas — leva menos de três
-          minutos. Depois, a próxima etapa é entregar seu currículo pessoalmente.
-        </p>
-        <div class="acoes">
-          <button class="btn btn--gold btn--big" data-next>Quero me candidatar</button>
-          <button class="btn btn--line btn--big" data-retomar hidden>Continuar de onde parei</button>
-          <button class="link" data-reiniciar hidden>Começar uma candidatura nova</button>
-        </div>
-      </section>
-
-      <!-- ============ 2. DADOS BÁSICOS (3 telas) ============ -->
-      <section class="step" data-step="dados-1" hidden>
-        <h2 class="t2" tabindex="-1">Vamos começar pelo básico.</h2>
-        <div class="campo">
-          <label for="nome">Nome completo</label>
-          <input id="nome" name="nome" type="text" autocomplete="name" autocapitalize="words" placeholder="Como está no seu documento" />
-          <p class="err" data-err="nome" hidden></p>
-        </div>
-        <div class="campo">
-          <label for="whatsapp">WhatsApp</label>
-          <input id="whatsapp" name="whatsapp" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="(22) 99999-9999" />
-          <p class="dica">Vamos usar só para falar sobre a vaga.</p>
-          <p class="err" data-err="whatsapp" hidden></p>
-        </div>
-        <div class="acoes">
-          <button class="btn btn--gold btn--big" data-next>Continuar</button>
-          <button class="link" data-back>Voltar</button>
-        </div>
-      </section>
-
-      <section class="step" data-step="dados-2" hidden>
-        <h2 class="t2" tabindex="-1">Mais duas coisas rápidas.</h2>
-        <div class="campo campo--curto">
-          <label for="idade">Idade</label>
-          <input id="idade" name="idade" type="number" inputmode="numeric" min="16" max="80" placeholder="Ex.: 24" />
-          <p class="err" data-err="idade" hidden></p>
-        </div>
-        <div class="campo">
-          <label for="cidade">Cidade onde mora</label>
-          <input id="cidade" name="cidade" type="text" autocomplete="address-level2" placeholder="Ex.: Itaperuna" />
-          <div class="chips">
-            <button type="button" class="chip" data-preencher="cidade" data-valor="Itaperuna">Moro em Itaperuna</button>
-          </div>
-          <p class="err" data-err="cidade" hidden></p>
-        </div>
-        <div class="acoes">
-          <button class="btn btn--gold btn--big" data-next>Continuar</button>
-          <button class="link" data-back>Voltar</button>
-        </div>
-      </section>
-
-      <section class="step" data-step="vaga" hidden>
-        <h2 class="t2" tabindex="-1">Qual vaga te interessa?</h2>
-        <p class="sub">Toque em uma opção para continuar.</p>
-        <div class="opts" data-choice="vaga">
-          {vagas.map((v) => (
-            <button class="opt" data-opt={v.id} aria-pressed="false">
-              <b>{v.nome}</b><span>{v.resumo}</span>
+      <section data-step="inicio">
+        <p class="eyebrow">Trabalhe com a gente</p>
+        <h1>Seu próximo trabalho pode ser aqui.</h1>
+        <p class="lead">Vagas no Qüem Qüem, em <strong>Itaperuna-RJ.</strong></p>
+        <p class="badge">Não precisa ter experiência</p>
+        <p class="intro">Escolha sua vaga para começar. Depois das perguntas, a próxima etapa é entregar seu currículo pessoalmente.</p>
+        <div class="job-list">
+          {vagas.map(v => (
+            <button type="button" class="job" data-vaga={v.id}>
+              <span><b>{v.nome}</b></span><span class="arrow" aria-hidden="true">→</span>
             </button>
           ))}
         </div>
-        <div class="acoes"><button class="link" data-back>Voltar</button></div>
-      </section>
-
-      <!-- ============ 3. TRIAGEM (uma pergunta por tela) ============ -->
-      {triagem.map((q) => (
-        <section class="step" data-step={`triagem-${q.id}`} hidden>
-          <h2 class="t2" tabindex="-1">{q.pergunta}</h2>
-          {q.ajuda && <p class="sub">{q.ajuda}</p>}
-          <div class="opts" data-choice={`triagem:${q.id}`}>
-            {q.opcoes.map((o) => (
-              <button class="opt opt--linha" data-opt={o.v} aria-pressed="false"><b>{o.l}</b></button>
-            ))}
-          </div>
-          <div class="acoes"><button class="link" data-back>Voltar</button></div>
-        </section>
-      ))}
-
-      <!-- ============ 4. RESULTADO DA PRIMEIRA ETAPA ============ -->
-      <section class="step" data-step="resultado" hidden>
-        <div data-variant="apto">
-          <p class="script">Primeira etapa concluída</p>
-          <h2 class="h-caps t1" tabindex="-1">Você pode continuar no processo seletivo.</h2>
-          <p class="lead">
-            Com base nas informações enviadas, seu perfil está apto para seguir
-            para a próxima etapa.
-          </p>
-          <p class="destaque">
-            A próxima etapa é entregar seu currículo pessoalmente no Qüem Qüem.
-          </p>
-          <div class="acoes">
-            <button class="btn btn--gold btn--big" data-next>Continuar</button>
-          </div>
-        </div>
-        <div data-variant="bloqueado" hidden>
-          <p class="script">Obrigado pelo interesse</p>
-          <h2 class="h-caps t1" tabindex="-1">Por enquanto não conseguimos seguir, <span data-fill="primeiro-nome"></span>.</h2>
-          <p class="lead">
-            Para essas vagas, precisamos de quem consiga estar em Itaperuna todos
-            os dias — e a próxima etapa é presencial. Por isso não faz sentido
-            pedir que você se desloque agora.
-          </p>
-          <p class="sub">Se a sua situação mudar, é só voltar aqui e refazer as perguntas.</p>
-          <div class="acoes">
-            <a class="btn btn--line btn--big" href="/">Voltar ao site</a>
-            <button class="link" data-reiniciar>Refazer as perguntas</button>
-          </div>
+        <div class="resume" data-resume hidden>
+          <p>Já começou por aqui?</p>
+          <button type="button" class="text-link" data-retomar>Continuar de onde parei</button>
+          <button type="button" class="text-link" data-reiniciar>Apagar respostas e recomeçar</button>
         </div>
       </section>
 
-      <!-- ============ 5. COMPROMISSO DE ENTREGA ============ -->
-      <section class="step" data-step="quando" hidden>
-        <h2 class="t2 t2--grande" tabindex="-1">Quando você consegue levar seu currículo ao Qüem Qüem?</h2>
-        <p class="sub">Escolha com sinceridade — esse é o seu compromisso com a próxima etapa.</p>
-        <div class="opts" data-choice="quando">
-          <button class="opt" data-opt="hoje" aria-pressed="false"><b>Hoje</b><span data-fill="dia-hoje"></span></button>
-          <button class="opt" data-opt="amanha" aria-pressed="false"><b>Amanhã</b><span data-fill="dia-amanha"></span></button>
-          <button class="opt" data-opt="3dias" aria-pressed="false"><b>Nos próximos 3 dias</b><span data-fill="dia-3dias"></span></button>
-          <button class="opt opt--fraco" data-opt="nao" aria-pressed="false"><b>Não consigo nesses dias</b></button>
-        </div>
-        <div class="acoes"><button class="link" data-back>Voltar</button></div>
+      <section data-step="contato" hidden>
+        <p class="eyebrow" data-fill="vaga"></p>
+        <h2>Como você se chama?</h2>
+        <form data-form="contato" novalidate>
+          <label class="field" for="nome">Nome e sobrenome<input id="nome" name="nome" autocomplete="name" maxlength="120" required aria-describedby="erro-nome" /><span class="error" id="erro-nome" hidden></span></label>
+          <label class="field" for="whatsapp">WhatsApp com DDD<input id="whatsapp" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(22) 99999-9999" maxlength="15" required aria-describedby="erro-whatsapp" /><span class="error" id="erro-whatsapp" hidden></span></label>
+          <p class="error" data-storage hidden role="status">Não foi possível salvar neste navegador. Você pode continuar, mas suas respostas podem se perder ao fechar a página.</p>
+          <div class="actions"><button class="btn btn--gold" type="submit">Continuar</button><button class="text-link" type="button" data-back>Voltar</button></div>
+        </form>
       </section>
 
-      <section class="step" data-step="periodo" hidden>
-        <h2 class="t2" tabindex="-1"><span data-fill="periodo-titulo">Ótimo.</span> Em qual período você pretende ir?</h2>
-        <div class="opts" data-choice="periodo">
-          {periodos.map((p) => (
-            <button class="opt opt--linha" data-opt={p.id} aria-pressed="false">
-              <b>{p.label}</b><span>{p.horas}</span>
-            </button>
+      <section data-step="local" hidden>
+        <p class="eyebrow" data-fill="vaga"></p>
+        <h2>Vamos falar da localização.</h2>
+        <p class="lead">O trabalho é presencial em Itaperuna.</p>
+        <form data-form="local" novalidate>
+          <fieldset aria-describedby="erro-mora">
+            <legend>Você mora em Itaperuna?</legend>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="mora" value="sim" required /><span>Sim</span></label>
+              <label class="choice"><input type="radio" name="mora" value="nao" required /><span>Não</span></label>
+            </div>
+            <p class="error" id="erro-mora" hidden></p>
+          </fieldset>
+          <div data-outra-cidade hidden>
+            <label class="field" for="cidade">Em qual cidade você mora?<input id="cidade" name="cidade" autocomplete="address-level2" maxlength="100" placeholder="Digite sua cidade" aria-describedby="erro-cidade" /><span class="error" id="erro-cidade" hidden></span></label>
+          </div>
+          <div class="actions"><button class="btn btn--gold" type="submit">Continuar</button><button class="text-link" type="button" data-back>Voltar</button></div>
+        </form>
+      </section>
+
+      <section data-step="disponibilidade" hidden>
+        <p class="eyebrow" data-fill="vaga"></p>
+        <h2>Qual é a sua disponibilidade?</h2>
+        <p class="lead">Essas respostas ajudam você a se preparar para conversar sobre a vaga.</p>
+        <form data-form="disponibilidade" novalidate>
+          {disponibilidade.map(q => (
+            <fieldset aria-describedby={`erro-${q.id}`}>
+              <legend>{q.pergunta}</legend>
+              <div class="choices">
+                {q.opcoes.map(o => <label class="choice"><input type="radio" name={q.id} value={o.v} required /><span>{o.l}</span></label>)}
+              </div>
+              <p class="error" id={`erro-${q.id}`} hidden></p>
+            </fieldset>
           ))}
-        </div>
-        <div class="acoes"><button class="link" data-back>Voltar</button></div>
+          <div class="actions"><button class="btn btn--gold" type="submit">Ver próximo passo</button><button class="text-link" type="button" data-back>Voltar</button></div>
+        </form>
       </section>
 
-      <!-- ============ 6. CONFIRMAÇÃO DO COMPROMISSO ============ -->
-      <section class="step" data-step="confirmacao" hidden>
-        <p class="script" data-fill="conf-script">Sua próxima etapa está confirmada</p>
-        <h2 class="h-caps t1" tabindex="-1" data-fill="conf-titulo">Sua próxima etapa está confirmada</h2>
+      <section data-step="analise" class="loading" hidden aria-busy="true">
+        <span class="spinner" aria-hidden="true"></span>
+        <h2>Um instante…</h2>
+        <p class="lead" data-loading-text role="status" aria-live="polite">Conferindo informações da vaga…</p>
+      </section>
 
-        <dl class="resumo">
+      <section data-step="resultado" hidden>
+        <p class="eyebrow">Perguntas concluídas</p>
+        <div data-result="seguir">
+          <h2>Você pode dar o próximo passo, <span data-fill="nome"></span>.</h2>
+          <p class="notice">O próximo passo é <strong>levar seu currículo impresso ao Qüem Qüem.</strong></p>
+          <p class="help">Este aviso não é uma aprovação para a vaga. A entrevista será feita na hora, quando você entregar seu currículo.</p>
+          <div class="actions"><button class="btn btn--gold" type="button" data-planejar>Escolher dia para levar o currículo</button><button class="text-link" type="button" data-back>Rever respostas</button></div>
+        </div>
+      </section>
+
+      <section data-step="visita" hidden>
+        <p class="eyebrow">Entrega do currículo</p>
+        <h2>Qual dia funciona melhor para você?</h2>
+        <p class="lead">Escolha quando pretende ir.</p>
+        <p class="help">Recebemos currículos de terça a domingo, das 8h às 15h. A entrevista será feita na hora.</p>
+        <form data-form="visita" novalidate>
+          <fieldset><legend>Dia da visita</legend><div class="choices dates" data-datas></div></fieldset>
+          <div class="date-picker" data-custom hidden><label class="field" for="data">Escolha outra data<input id="data" name="data" type="date" aria-describedby="erro-visita" /></label></div>
+          <fieldset data-periodos-box hidden><legend>Em qual período você pretende ir?</legend><div class="choices" data-periodos></div></fieldset>
+          <p class="help" data-sem-data hidden>Tudo bem. Você poderá voltar para escolher um dia quando souber sua disponibilidade.</p>
+          <p class="error" id="erro-visita" role="alert" hidden></p>
+          <div class="actions"><button class="btn btn--gold" type="submit" data-visita-cta>Salvar meu plano de visita</button><button class="text-link" type="button" data-back>Voltar</button></div>
+        </form>
+      </section>
+
+      <section data-step="resumo" hidden>
+        <p class="eyebrow">Seu próximo passo</p>
+        <h2 data-fill="titulo-resumo">Leve seu currículo ao Qüem Qüem.</h2>
+        <p class="lead" data-fill="texto-resumo"></p>
+        <dl class="summary">
           <div><dt>Vaga</dt><dd data-fill="vaga"></dd></div>
-          <div><dt>Entrega do currículo</dt><dd data-fill="entrega"></dd></div>
-          <div><dt>Período</dt><dd data-fill="periodo"></dd></div>
+          <div><dt>Dia</dt><dd data-fill="data"></dd></div>
+          <div data-horario><dt>Horário</dt><dd data-fill="periodo"></dd></div>
+          <div><dt>Levar</dt><dd>Currículo impresso com seu contato</dd></div>
         </dl>
-
-        <address class="end">
-          <b>{local.nome}</b>
-          <span>{local.rua}</span>
-          <span>{local.bairro} — {local.cidade}-{local.uf}</span>
-          <span class="end__ref">{local.referencia}</span>
-        </address>
-
-        <div class="grandes">
-          <a class="grande" href={local.maps} target="_blank" rel="noopener">
-            <span class="grande__ico" aria-hidden="true">📍</span>
-            <span><b>Abrir localização</b><small>Google Maps</small></span>
-          </a>
-          <button class="grande" data-lembrete data-if="lembrete">
-            <span class="grande__ico" aria-hidden="true">🔔</span>
-            <span><b>Adicionar lembrete</b><small>na agenda do celular</small></span>
-          </button>
-          <a class="grande" data-whats data-if="whats" href="#" target="_blank" rel="noopener">
-            <span class="grande__ico" aria-hidden="true">💬</span>
-            <span><b>Falar no WhatsApp</b><small>dúvidas sobre a vaga</small></span>
-          </a>
+        <address><strong>{local.nome}</strong><br />{local.rua}<br />{local.bairro} · {local.cidade}-{local.uf}</address>
+        <p class="notice">Ao chegar, diga que veio <strong>entregar um currículo para a vaga de <span data-fill="vaga"></span></strong> e fazer a entrevista.</p>
+        <div class="actions">
+          <a class="btn btn--gold" href={local.maps} target="_blank" rel="noopener">Abrir localização</a>
+          <button class="btn btn--line" type="button" data-lembrete>Salvar lembrete na agenda</button>
+          <a class="text-link" data-google target="_blank" rel="noopener">Usar Google Agenda</a>
+          <button class="text-link" type="button" data-mudar-dia>Escolher outro dia</button>
         </div>
-        <p class="dica dica--centro" data-if="lembrete">
-          <a class="link-inline" data-gcal href="#" target="_blank" rel="noopener">Prefere o Google Agenda?</a>
-        </p>
-
-        <p class="chegada">
-          Ao chegar, informe que realizou a <b>primeira etapa da candidatura online</b>.
-        </p>
-
-        <div class="acoes">
-          <button class="btn btn--gold btn--big" data-next>Concluir</button>
-          <button class="link" data-back>Mudar dia ou período</button>
-        </div>
-      </section>
-
-      <!-- ============ 7. TELA FINAL ============ -->
-      <section class="step" data-step="final" hidden>
-        <p class="script">Até logo</p>
-        <h2 class="h-caps t1" tabindex="-1">Tudo certo, <span data-fill="primeiro-nome"></span>.</h2>
-        <p class="lead">Esperamos você no Qüem Qüem no período informado.</p>
-        <ul class="check">
-          <li><span class="check__k">Dia</span><span data-fill="entrega"></span></li>
-          <li><span class="check__k">Período</span><span data-fill="periodo"></span></li>
-          <li><span class="check__k">Endereço</span><span>{local.rua} — {local.bairro}, {local.cidade}-{local.uf}</span></li>
-          <li><span class="check__k">Levar</span><span>Currículo impresso</span></li>
-        </ul>
-        <div class="acoes">
-          <a class="btn btn--line btn--big" href="/">Voltar ao site</a>
-        </div>
+        <p class="error" data-storage hidden role="status">Não foi possível salvar neste navegador. Anote o endereço e o dia escolhido antes de sair.</p>
       </section>
     </main>
-
-    <footer class="base">
-      <span>{local.nome} · {local.rua} · {local.cidade}-{local.uf}</span>
-      <span class="base__h">{local.horario}</span>
-    </footer>
+    <footer>{local.nome} · {local.cidade}-{local.uf}<br /><a href="/">Conheça o restaurante</a></footer>
   </div>
-
-  <script is:inline type="application/json" id="cfg-vagas" set:html={JSON.stringify(cfg)}></script>
+  <script is:inline type="application/json" id="cfg-vagas" set:html={JSON.stringify(cfg).replace(/</g, "\\u003c")} />
+  <script src="../scripts/vagas.ts"></script>
 </Layout>
 
 <style>
-  .app { min-height: 100svh; display: flex; flex-direction: column; background: var(--dark-bg); }
-
-  /* ---- topo ---- */
-  .top {
-    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-    padding: 1.1rem var(--gutter);
-    border-bottom: 1px solid var(--dark-line);
-  }
-  .brand { display: grid; line-height: 1.1; }
-  .brand__name { font-family: var(--display); font-size: 1.4rem; color: var(--marfim); }
-  .brand__name .u { color: var(--champagne); }
-  .brand__sub { font-size: .55rem; letter-spacing: .4em; text-transform: uppercase; color: var(--dark-mute); margin-top: .15rem; }
-  .top__tag {
-    font-size: .6rem; letter-spacing: .22em; text-transform: uppercase; font-weight: 700;
-    color: var(--preto); background: var(--champagne); padding: .35rem .7rem;
-    white-space: nowrap;
-  }
-
-  /* ---- progresso ---- */
-  .prog { padding: .9rem var(--gutter) 0; width: min(100%, 620px); margin-inline: auto; }
-  .prog[hidden] { display: none; }
-  .prog__bar { height: 3px; background: var(--dark-line); overflow: hidden; }
-  .prog__bar span { display: block; height: 100%; width: 0; background: var(--champagne); transition: width .4s var(--ease); }
-  .prog__txt { margin-top: .5rem; font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; color: var(--dark-mute); }
-  .prog__txt b { color: var(--ouro); font-weight: 600; }
-
-  /* ---- etapas ---- */
-  .steps { flex: 1; width: min(100%, 620px); margin-inline: auto; padding: clamp(1.6rem, 5vw, 3rem) var(--gutter) 3rem; }
-  .step { animation: rise .35s var(--ease); }
-  .step[hidden] { display: none; }
-  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-
-  .script { margin-bottom: .6rem; }
-  .t1 { font-size: var(--s-2); color: var(--marfim); outline: none; }
-  .t2 { font-family: var(--display); font-size: var(--s-2); font-weight: 440; color: var(--marfim); line-height: 1.2; outline: none; }
-  .t2--grande { font-size: clamp(1.7rem, 1.3rem + 2vw, 2.6rem); }
-  .lead { color: var(--dark-dim); margin-top: 1rem; font-size: var(--s-0); }
-  .lead b { color: var(--marfim); }
-  .sub { color: var(--dark-mute); margin-top: .6rem; font-size: var(--s--1); }
-  .destaque {
-    margin-top: 1.4rem; padding: 1rem 1.1rem;
-    border-left: 3px solid var(--champagne);
-    background: rgba(201,165,106,.08);
-    color: var(--marfim); font-family: var(--display); font-size: var(--s-1); line-height: 1.35;
-  }
-
-  .vagas { list-style: none; padding: 0; margin: 1.2rem 0 0; display: grid; gap: .5rem; }
-  .vagas li {
-    display: grid; gap: .15rem;
-    padding: .9rem 1rem;
-    border: 1px solid var(--dark-line); background: rgba(244,239,232,.03);
-  }
-  .vagas b { font-family: var(--display); font-weight: 480; color: var(--marfim); font-size: var(--s-1); }
-  .vagas span { font-size: var(--s--1); color: var(--dark-mute); }
-  .aviso { margin-top: 1.4rem; color: var(--dark-dim); font-size: var(--s--1); line-height: 1.6; }
-
-  /* ---- campos ---- */
-  .campo { margin-top: 1.5rem; display: grid; gap: .45rem; }
-  .campo label { font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--champagne); font-weight: 600; }
-  .campo input {
-    font-family: var(--body); font-size: 1.15rem;
-    padding: .95rem 1rem;
-    background: rgba(244,239,232,.05);
-    border: 1px solid var(--dark-line); border-radius: 0;
-    color: var(--marfim);
-    width: 100%;
-  }
-  .campo input::placeholder { color: var(--dark-mute); opacity: .7; }
-  .campo input:focus { outline: none; border-color: var(--champagne); background: rgba(244,239,232,.07); }
-  .campo input[aria-invalid="true"] { border-color: #c96a6a; }
-  .campo--curto input { max-width: 9rem; }
-  .dica { font-size: var(--s--1); color: var(--dark-mute); }
-  .dica--centro { text-align: center; margin-top: .6rem; }
-  .err { font-size: var(--s--1); color: #e39a9a; }
-  .chips { display: flex; flex-wrap: wrap; gap: .4rem; }
-  .chip {
-    font-family: var(--body); font-size: .78rem; letter-spacing: .04em;
-    padding: .45rem .9rem; border-radius: 999px;
-    background: transparent; border: 1px solid var(--dark-line); color: var(--dark-dim);
-    cursor: pointer;
-  }
-  .chip:hover { border-color: var(--champagne); color: var(--ouro); }
-
-  /* ---- opções (toque e segue) ---- */
-  .opts { display: grid; gap: .6rem; margin-top: 1.4rem; }
-  .opt {
-    display: grid; gap: .2rem; text-align: left;
-    font-family: var(--body);
-    padding: 1.05rem 1.1rem;
-    background: rgba(244,239,232,.04);
-    border: 1px solid var(--dark-line); border-radius: 0;
-    color: var(--marfim);
-    cursor: pointer;
-    min-height: 3.6rem;
-    transition: border-color .2s var(--ease), background-color .2s var(--ease), transform .2s var(--ease);
-  }
-  .opt b { font-family: var(--display); font-weight: 480; font-size: var(--s-1); line-height: 1.2; }
-  .opt span { font-size: var(--s--1); color: var(--dark-mute); }
-  .opt:hover { border-color: var(--champagne); background: rgba(201,165,106,.08); }
-  .opt:focus-visible { outline: 2px solid var(--ouro); outline-offset: 2px; }
-  .opt[aria-pressed="true"] { border-color: var(--champagne); background: rgba(201,165,106,.16); transform: scale(.995); }
-  .opt--linha { grid-template-columns: 1fr auto; align-items: center; }
-  .opt--linha b { font-size: var(--s-0); }
-  .opt--fraco b { color: var(--dark-dim); font-weight: 400; }
-  .opt:disabled { opacity: .45; cursor: not-allowed; }
-  .opt:disabled:hover { border-color: var(--dark-line); background: rgba(244,239,232,.04); }
-
-  /* ---- ações ---- */
-  .acoes { display: grid; gap: .8rem; margin-top: 1.8rem; justify-items: start; }
-  .btn--big { width: 100%; justify-content: center; padding: 1.15rem 1.6rem; font-size: .92rem; }
-  .link {
-    font-family: var(--body); font-size: var(--s--1); letter-spacing: .1em; text-transform: uppercase;
-    background: none; border: none; padding: .4rem 0; cursor: pointer;
-    color: var(--dark-mute); border-bottom: 1px solid transparent;
-  }
-  .link:hover { color: var(--ouro); border-color: var(--ouro); }
-  .link[hidden] { display: none; }
-  .link-inline { color: var(--ouro); border-bottom: 1px solid rgba(216,190,135,.4); }
-
-  /* ---- confirmação ---- */
-  .resumo { margin-top: 1.5rem; border: 1px solid var(--dark-line); }
-  .resumo > div { display: grid; grid-template-columns: 9rem 1fr; gap: 1rem; padding: .85rem 1rem; }
-  .resumo > div + div { border-top: 1px solid var(--dark-line); }
-  .resumo dt { font-size: .66rem; letter-spacing: .2em; text-transform: uppercase; color: var(--champagne); font-weight: 600; padding-top: .2rem; }
-  .resumo dd { font-family: var(--display); font-size: var(--s-1); color: var(--marfim); }
-  @media (max-width: 420px) { .resumo > div { grid-template-columns: 1fr; gap: .2rem; } }
-
-  .end { font-style: normal; margin-top: 1.4rem; display: grid; gap: .1rem; color: var(--dark-dim); }
-  .end b { font-family: var(--display); color: var(--marfim); font-size: var(--s-1); font-weight: 480; }
-  .end__ref { color: var(--dark-mute); font-size: var(--s--1); }
-
-  .grandes { display: grid; gap: .6rem; margin-top: 1.4rem; }
-  .grande {
-    display: flex; align-items: center; gap: .9rem; text-align: left;
-    font-family: var(--body);
-    padding: .95rem 1.1rem;
-    background: var(--cafe); color: var(--marfim);
-    border: 1px solid var(--dark-line); border-radius: 0;
-    cursor: pointer;
-    transition: background-color .2s var(--ease), border-color .2s var(--ease), transform .2s var(--ease);
-  }
-  .grande:hover { border-color: var(--champagne); transform: translateY(-1px); }
-  .grande[hidden] { display: none; }
-  .grande__ico { font-size: 1.3rem; width: 2rem; text-align: center; }
-  .grande > span:last-child { display: grid; }
-  .grande b { font-size: var(--s-0); font-weight: 600; letter-spacing: .02em; }
-  .grande small { font-size: var(--s--1); color: var(--dark-mute); }
-  [data-if][hidden] { display: none; }
-
-  .chegada {
-    margin-top: 1.5rem; padding: .9rem 1rem;
-    background: rgba(201,165,106,.08); border: 1px dashed rgba(201,165,106,.35);
-    color: var(--dark-dim); font-size: var(--s--1); line-height: 1.6;
-  }
-  .chegada b { color: var(--ouro); }
-
-  /* ---- final ---- */
-  .check { list-style: none; padding: 0; margin: 1.6rem 0 0; display: grid; }
-  .check li {
-    display: grid; grid-template-columns: 6.5rem 1fr; gap: 1rem;
-    padding: .8rem 0; border-top: 1px solid var(--dark-line);
-    color: var(--marfim);
-  }
-  .check li:last-child { border-bottom: 1px solid var(--dark-line); }
-  .check__k { font-size: .66rem; letter-spacing: .2em; text-transform: uppercase; color: var(--champagne); font-weight: 600; padding-top: .25rem; }
-
-  /* ---- rodapé ---- */
-  .base {
-    padding: 1.2rem var(--gutter);
-    border-top: 1px solid var(--dark-line);
-    display: grid; gap: .2rem; text-align: center;
-    font-size: var(--s--1); color: var(--dark-mute);
-  }
-  .base__h { font-size: .72rem; }
-
-  @media (prefers-reduced-motion: reduce) { .step { animation: none; } }
+  .loading { text-align:center; padding-block:3rem; }
+  .spinner { display:block; width:42px; height:42px; margin:0 auto 1.5rem; border:3px solid var(--dark-line); border-top-color:var(--champagne); border-radius:50%; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @media(prefers-reduced-motion:reduce) { .spinner { animation:none; } }
+  .app { min-height:100svh; display:flex; flex-direction:column; background:var(--dark-bg); }
+  .app [hidden] { display:none !important; }
+  .top { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:1rem var(--gutter); border-bottom:1px solid var(--dark-line); }
+  .brand { font-family:var(--display); font-size:1.45rem; line-height:1.15; }
+  .brand span { color:var(--champagne); }
+  .brand small { display:block; font-family:var(--body); font-size:.6rem; letter-spacing:.2em; text-transform:uppercase; color:var(--dark-dim); margin-top:.25rem; }
+  .tag { font-size:.72rem; background:var(--champagne); color:var(--preto); padding:.3rem .65rem; white-space:nowrap; }
+  main { width:min(100%,660px); padding:1.8rem 1.5rem 3rem; margin-inline:auto; flex:1; }
+  h1,h2 { font-size:clamp(1.8rem,1.3rem + 2vw,2.55rem); line-height:1.16; letter-spacing:-.015em; text-wrap:balance; }
+  .eyebrow { color:var(--champagne); font-size:.9rem; margin-bottom:.65rem; }
+  .lead { font-size:1.05rem; color:var(--dark-dim); margin-top:1rem; }
+  .badge { display:inline-block; margin-top:.85rem; padding:.25rem .65rem; background:rgba(201,165,106,.13); color:var(--ouro); font-weight:600; font-size:.9rem; }
+  .intro { margin-top:.85rem; color:var(--dark-dim); font-size:.95rem; }
+  .job-list { display:grid; gap:.65rem; margin-top:1.2rem; }
+  .job { display:flex; align-items:center; justify-content:space-between; gap:1rem; text-align:left; border:1px solid var(--dark-line); background:rgba(244,239,232,.04); padding:1rem 1.1rem; color:var(--marfim); cursor:pointer; font-family:var(--body); width:100%; }
+  .job b { display:block; font-family:var(--display); font-size:1.3rem; font-weight:480; }
+  .arrow { font-size:1.5rem; color:var(--champagne); }
+  .job:hover { border-color:var(--champagne); background:rgba(201,165,106,.1); }
+  .resume { margin-top:1.5rem; display:grid; gap:.4rem; border-top:1px solid var(--dark-line); padding-top:1rem; font-size:.9rem; }
+  .progress { width:min(100%,660px); padding:1.2rem 1.5rem 0; margin-inline:auto; }
+  .progress p { font-size:.8rem; color:var(--dark-dim); margin-bottom:.4rem; }
+  progress { width:100%; height:4px; border:0; display:block; background:var(--dark-line); color:var(--champagne); }
+  progress::-webkit-progress-bar { background:var(--dark-line); } progress::-webkit-progress-value { background:var(--champagne); } progress::-moz-progress-bar { background:var(--champagne); }
+  .field { display:grid; gap:.45rem; margin-top:1.3rem; font-size:1rem; }
+  input:not([type=radio]) { width:100%; min-width:0; min-height:50px; font:inherit; padding:.8rem; color:var(--marfim); background:var(--cafe); border:1px solid var(--dark-line); border-radius:2px; color-scheme:dark; }
+  input::placeholder { color:var(--dark-dim); }
+  input[aria-invalid=true] { border-color:#e39a9a; }
+  fieldset { border:0; margin:1.5rem 0 0; padding:0; min-width:0; }
+  legend { font-size:1rem; font-weight:600; margin-bottom:.65rem; padding:0; }
+  .choices { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; }
+  .choices :global(.choice) { position:relative; display:flex; gap:.65rem; align-items:center; padding:.8rem; border:1px solid var(--dark-line); background:rgba(244,239,232,.03); min-height:52px; cursor:pointer; font-size:1rem; line-height:1.4; }
+  .choices :global(.choice:has(input:checked)) { border-color:var(--champagne); background:rgba(201,165,106,.15); }
+  .choices :global(input[type=radio]) { width:18px; height:18px; flex-shrink:0; accent-color:var(--champagne); }
+  .dates { grid-template-columns:1fr; }
+  .choices :global(small) { display:block; color:var(--dark-dim); font-size:.85rem; }
+  .help { color:var(--dark-dim); font-size:.9rem; line-height:1.55; margin-top:1rem; }
+  .error { color:#f0aaa4; font-size:.9rem; margin-top:.35rem; }
+  .actions { display:grid; gap:.7rem; margin-top:1.6rem; }
+  .btn { width:100%; justify-content:center; text-align:center; min-height:52px; padding:.95rem 1rem; font-size:.95rem; letter-spacing:.02em; text-transform:none; }
+  .text-link { font-family:inherit; font-size:.9rem; background:none; border:none; color:var(--ouro); padding:.6rem .2rem; min-height:44px; text-decoration:underline; text-underline-offset:4px; cursor:pointer; text-align:center; }
+  :is(button,a,input):focus-visible { outline:2px solid var(--ouro); outline-offset:4px; }
+  h1:focus,h2:focus { outline:none; }
+  .notice { margin-top:1.25rem; border-left:3px solid var(--champagne); padding:1rem; background:rgba(201,165,106,.08); color:var(--dark-dim); }
+  .notice strong { color:var(--marfim); }
+  .summary { margin-top:1.4rem; border:1px solid var(--dark-line); }
+  .summary > div { padding:.8rem 1rem; display:grid; grid-template-columns:5rem 1fr; gap:1rem; }
+  .summary > div + div { border-top:1px solid var(--dark-line); }
+  dt { color:var(--champagne); font-size:.85rem; } dd { font-size:1rem; overflow-wrap:anywhere; }
+  address { margin-top:1.3rem; font-style:normal; color:var(--dark-dim); font-size:1rem; }
+  footer { padding:1rem 1.5rem; border-top:1px solid var(--dark-line); text-align:center; color:var(--dark-dim); font-size:.85rem; }
+  footer a { display:inline-block; padding:.5rem; text-decoration:underline; }
+  @media(max-width:380px) { main { padding-inline:1.1rem; } .choices { grid-template-columns:1fr; } .summary > div { grid-template-columns:1fr; gap:.2rem; } }
 </style>
-
-<script>
-  import type { Vaga, Pergunta, Periodo } from "../data/vagas";
-
-  type Cfg = {
-    vagas: Vaga[];
-    local: { nome: string; rua: string; bairro: string; cidade: string; uf: string; referencia: string; maps: string; horario: string };
-    triagem: Pergunta[];
-    periodos: Periodo[];
-    bloqueia: { pergunta: string; valor: string };
-    diasFechado: number[];
-    diasSemNoite: number[];
-    whatsappVagas: { ativo: boolean; numero: string };
-  };
-  type Quando = "hoje" | "amanha" | "3dias" | "nao";
-  type Estado = {
-    id: string;
-    criadoEm: string;
-    etapa: string;
-    alcancou: number;               // índice máximo já visitado (bloqueia pular via URL)
-    dados: { nome?: string; whatsapp?: string; idade?: number; cidade?: string; vaga?: string };
-    triagem: Record<string, string>;
-    entrega: { quando?: Quando; data?: string; periodo?: string };
-    concluidoEm?: string;
-  };
-
-  const cfg: Cfg = JSON.parse(document.getElementById("cfg-vagas")!.textContent!);
-  const KEY = "qq.candidatura";          // candidatura em andamento
-  const KEY_LISTA = "qq.candidaturas";   // "enviadas" (mock do backend)
-
-  // ---------- ordem das telas ----------
-  const ordem = [
-    "inicio", "dados-1", "dados-2", "vaga",
-    ...cfg.triagem.map((q) => `triagem-${q.id}`),
-    "resultado", "quando", "periodo", "confirmacao", "final",
-  ];
-  const idx = (id: string) => ordem.indexOf(id);
-
-  // ---------- estado ----------
-  const novo = (): Estado => ({
-    id: (crypto as any).randomUUID?.() ?? String(Date.now()),
-    criadoEm: new Date().toISOString(),
-    etapa: "inicio",
-    alcancou: 0,
-    dados: {}, triagem: {}, entrega: {},
-  });
-  const ler = (): Estado | null => {
-    try { const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; } catch { return null; }
-  };
-  let s: Estado = ler() ?? novo();
-  const salvar = () => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {} };
-
-  // guarda uma cópia na "lista de enviadas" quando o compromisso é firmado
-  const registrar = () => {
-    try {
-      const lista: Estado[] = JSON.parse(localStorage.getItem(KEY_LISTA) || "[]");
-      const i = lista.findIndex((c) => c.id === s.id);
-      const copia = { ...s, concluidoEm: s.concluidoEm ?? new Date().toISOString() };
-      if (i >= 0) lista[i] = copia; else lista.push(copia);
-      localStorage.setItem(KEY_LISTA, JSON.stringify(lista));
-      s.concluidoEm = copia.concluidoEm;
-    } catch {}
-  };
-
-  // ---------- datas ----------
-  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
-  const addDias = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
-  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  const deIso = (v: string) => { const [y, m, d] = v.split("-").map(Number); return new Date(y, m - 1, d); };
-  const fmtDia = (d: Date) => d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" }).replace(",", "");
-  const cap = (t: string) => t.charAt(0).toUpperCase() + t.slice(1);
-  const fechado = (d: Date) => cfg.diasFechado.includes(d.getDay());
-
-  // períodos ainda possíveis num dia (domingo sem noite; hoje só o que não passou)
-  const periodosDoDia = (d: Date) => {
-    const agora = new Date();
-    return cfg.periodos.filter((p) => {
-      if (p.id === "noite" && cfg.diasSemNoite.includes(d.getDay())) return false;
-      if (iso(d) === iso(hoje)) {
-        const [h, m] = p.fim.split(":").map(Number);
-        const fim = new Date(d); fim.setHours(h, m, 0, 0);
-        if (fim <= agora) return false;
-      }
-      return true;
-    });
-  };
-  const dataDe = (q: Quando) => q === "hoje" ? hoje : q === "amanha" ? addDias(hoje, 1) : q === "3dias" ? addDias(hoje, 1) : null;
-
-  // ---------- textos derivados do estado ----------
-  const vagaNome = () => cfg.vagas.find((v) => v.id === s.dados.vaga)?.nome ?? "—";
-  const periodoObj = () => cfg.periodos.find((p) => p.id === s.entrega.periodo);
-  const primeiroNome = () => (s.dados.nome || "").trim().split(/\s+/)[0] || "";
-  const entregaTxt = () => {
-    const q = s.entrega.quando;
-    const d = s.entrega.data ? deIso(s.entrega.data) : null;
-    if (q === "hoje" && d) return `Hoje, ${fmtDia(d)}`;
-    if (q === "amanha" && d) return `Amanhã, ${fmtDia(d)}`;
-    if (q === "3dias") return `Nos próximos 3 dias (até ${fmtDia(addDias(hoje, 3))})`;
-    if (q === "nao") return "Quando conseguir";
-    return "—";
-  };
-  const periodoTxt = () => {
-    const p = periodoObj();
-    if (p) return `${p.label} · ${p.horas}`;
-    if (s.entrega.quando === "3dias" || s.entrega.quando === "nao") return "No horário de funcionamento";
-    return "—";
-  };
-  const bloqueado = () => s.triagem[cfg.bloqueia.pergunta] === cfg.bloqueia.valor;
-
-  const preencher = () => {
-    const f: Record<string, string> = {
-      "primeiro-nome": primeiroNome(),
-      "vaga": vagaNome(),
-      "entrega": entregaTxt(),
-      "periodo": periodoTxt(),
-      "dia-hoje": cap(fmtDia(hoje)),
-      "dia-amanha": cap(fmtDia(addDias(hoje, 1))),
-      "dia-3dias": `até ${fmtDia(addDias(hoje, 3))}`,
-      "periodo-titulo": s.entrega.quando === "amanha" ? "Combinado." : "Ótimo.",
-      "conf-script": s.entrega.quando === "nao" ? "Combinado" : "Compromisso firmado",
-      "conf-titulo": s.entrega.quando === "nao" ? "Venha quando conseguir." : "Sua próxima etapa está confirmada",
-    };
-    document.querySelectorAll<HTMLElement>("[data-fill]").forEach((el) => {
-      const v = f[el.dataset.fill!];
-      if (v !== undefined) el.textContent = v;
-    });
-  };
-
-  // ---------- progresso ----------
-  const fases = [
-    { nome: "Seus dados", ids: ["dados-1", "dados-2", "vaga"] },
-    { nome: "Perguntas", ids: cfg.triagem.map((q) => `triagem-${q.id}`) },
-    { nome: "Resultado", ids: ["resultado"] },
-    { nome: "Entrega", ids: ["quando", "periodo"] },
-    { nome: "Confirmação", ids: ["confirmacao", "final"] },
-  ];
-  const progEl = document.querySelector<HTMLElement>("[data-prog]")!;
-  const progFill = document.querySelector<HTMLElement>("[data-prog-fill]")!;
-  const progFase = document.querySelector<HTMLElement>("[data-prog-fase]")!;
-  const progSub = document.querySelector<HTMLElement>("[data-prog-sub]")!;
-  const progresso = (id: string) => {
-    const fi = fases.findIndex((f) => f.ids.includes(id));
-    progEl.hidden = fi < 0;
-    if (fi < 0) return;
-    const f = fases[fi];
-    const dentro = f.ids.indexOf(id);
-    const pct = ((fi + (dentro + 1) / f.ids.length) / fases.length) * 100;
-    progFill.style.width = `${Math.round(pct)}%`;
-    progFase.textContent = `Etapa ${fi + 1} de ${fases.length} · ${f.nome}`;
-    progSub.textContent = f.ids.length > 1 ? `— ${dentro + 1}/${f.ids.length}` : "";
-  };
-
-  // ---------- navegação ----------
-  const steps = Array.from(document.querySelectorAll<HTMLElement>("[data-step]"));
-  const temPeriodo = () => s.entrega.quando === "hoje" || s.entrega.quando === "amanha";
-
-  const proximo = (id: string): string | null => {
-    if (id === "resultado") return bloqueado() ? null : "quando";
-    if (id === "quando") return temPeriodo() ? "periodo" : "confirmacao";
-    return ordem[idx(id) + 1] ?? null;
-  };
-  const anterior = (id: string): string => {
-    if (id === "confirmacao") return temPeriodo() ? "periodo" : "quando";
-    return ordem[Math.max(0, idx(id) - 1)];
-  };
-
-  const mostrar = (id: string, push = true) => {
-    if (!ordem.includes(id)) id = "inicio";
-    // por URL/histórico (push=false) não deixa pular pra frente sem ter
-    // passado pelas telas; avanço por botão (push=true) é sempre permitido
-    if (!push && idx(id) > s.alcancou) id = ordem[s.alcancou];
-
-    if (id === "resultado") {
-      const b = bloqueado();
-      document.querySelector<HTMLElement>('[data-variant="apto"]')!.hidden = b;
-      document.querySelector<HTMLElement>('[data-variant="bloqueado"]')!.hidden = !b;
-    }
-    if (id === "periodo" && !temPeriodo()) id = "quando";
-
-    preencher();
-    if (id === "quando") prepararQuando();
-    if (id === "periodo") prepararPeriodo();
-    if (id === "confirmacao") { registrar(); prepararConfirmacao(); }
-    if (id === "inicio") prepararInicio();
-    steps.forEach((el) => { el.hidden = el.dataset.step !== id; });
-    progresso(id);
-
-    s.etapa = id;
-    s.alcancou = Math.max(s.alcancou, idx(id));
-    salvar();
-
-    if (push) history.pushState({ step: id }, "", `#${id}`);
-    window.scrollTo({ top: 0, behavior: "auto" });
-    const alvo = steps.find((el) => el.dataset.step === id);
-    const foco = Array.from(alvo?.querySelectorAll<HTMLElement>("[tabindex='-1']") ?? []).find((el) => !el.closest("[hidden]"));
-    foco?.focus({ preventScroll: true });
-  };
-
-  window.addEventListener("popstate", (e) => {
-    const id = (e.state && e.state.step) || location.hash.slice(1) || "inicio";
-    mostrar(id, false);
-  });
-
-  // ---------- tela 1 ----------
-  const prepararInicio = () => {
-    const emAndamento = s.alcancou > 0 && s.etapa !== "final";
-    const concluida = Boolean(s.concluidoEm);
-    const retomar = document.querySelector<HTMLButtonElement>("[data-retomar]")!;
-    retomar.hidden = !(emAndamento || concluida);
-    retomar.textContent = concluida ? "Ver minha confirmação" : "Continuar de onde parei";
-    document.querySelector<HTMLElement>("[data-step='inicio'] [data-reiniciar]")!.hidden = !(emAndamento || concluida);
-  };
-
-  // ---------- formulários ----------
-  const campo = (n: string) => document.querySelector<HTMLInputElement>(`#${n}`)!;
-  const erro = (n: string, msg?: string) => {
-    const el = document.querySelector<HTMLElement>(`[data-err="${n}"]`)!;
-    el.hidden = !msg; el.textContent = msg ?? "";
-    campo(n).setAttribute("aria-invalid", msg ? "true" : "false");
-    return !msg;
-  };
-  const soDigitos = (v: string) => v.replace(/\D/g, "");
-  const mascaraTel = (v: string) => {
-    const d = soDigitos(v).slice(0, 11);
-    if (!d) return "";
-    if (d.length <= 2) return `(${d}`;
-    if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
-    if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
-    return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
-  };
-  campo("whatsapp").addEventListener("input", (e) => {
-    const el = e.target as HTMLInputElement; el.value = mascaraTel(el.value);
-  });
-  document.querySelectorAll<HTMLButtonElement>("[data-preencher]").forEach((b) =>
-    b.addEventListener("click", () => { campo(b.dataset.preencher!).value = b.dataset.valor!; erro(b.dataset.preencher!); }),
-  );
-
-  const validar: Record<string, () => boolean> = {
-    "dados-1": () => {
-      const nome = campo("nome").value.trim().replace(/\s+/g, " ");
-      const okNome = erro("nome", nome.split(" ").filter((p) => p.length >= 2).length >= 2 ? undefined : "Escreva nome e sobrenome.");
-      const tel = soDigitos(campo("whatsapp").value);
-      const okTel = erro("whatsapp", tel.length === 10 || tel.length === 11 ? undefined : "Número com DDD, ex.: (22) 99999-9999.");
-      if (okNome && okTel) { s.dados.nome = nome; s.dados.whatsapp = mascaraTel(tel); }
-      return okNome && okTel;
-    },
-    "dados-2": () => {
-      const idade = Number(campo("idade").value);
-      const okIdade = erro("idade", Number.isInteger(idade) && idade >= 16 && idade <= 80 ? undefined : "Informe sua idade (a partir de 16).");
-      const cidade = campo("cidade").value.trim();
-      const okCidade = erro("cidade", cidade.length >= 2 ? undefined : "Em qual cidade você mora?");
-      if (okIdade && okCidade) { s.dados.idade = idade; s.dados.cidade = cidade; }
-      return okIdade && okCidade;
-    },
-  };
-
-  // restaura o que já foi digitado
-  const restaurarCampos = () => {
-    if (s.dados.nome) campo("nome").value = s.dados.nome;
-    if (s.dados.whatsapp) campo("whatsapp").value = s.dados.whatsapp;
-    if (s.dados.idade) campo("idade").value = String(s.dados.idade);
-    if (s.dados.cidade) campo("cidade").value = s.dados.cidade;
-  };
-
-  // ---------- opções de toque único ----------
-  const marcar = (grupo: HTMLElement, valor: string | undefined) =>
-    grupo.querySelectorAll<HTMLButtonElement>("[data-opt]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.opt === valor)));
-
-  document.querySelectorAll<HTMLElement>("[data-choice]").forEach((grupo) => {
-    const chave = grupo.dataset.choice!;
-    grupo.querySelectorAll<HTMLButtonElement>("[data-opt]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        if (btn.disabled) return;
-        const v = btn.dataset.opt!;
-        if (chave === "vaga") s.dados.vaga = v;
-        else if (chave.startsWith("triagem:")) s.triagem[chave.slice(8)] = v;
-        else if (chave === "quando") {
-          s.entrega = { quando: v as Quando, data: dataDe(v as Quando) ? iso(dataDe(v as Quando)!) : undefined };
-        } else if (chave === "periodo") s.entrega.periodo = v;
-        marcar(grupo, v);
-        salvar();
-        const atual = grupo.closest<HTMLElement>("[data-step]")!.dataset.step!;
-        setTimeout(() => { const n = proximo(atual); if (n) mostrar(n); }, 180);
-      });
-    });
-  });
-
-  const prepararQuando = () => {
-    const g = document.querySelector<HTMLElement>('[data-choice="quando"]')!;
-    const set = (id: string, off: boolean, motivo?: string) => {
-      const b = g.querySelector<HTMLButtonElement>(`[data-opt="${id}"]`)!;
-      b.disabled = off;
-      const sub = b.querySelector<HTMLElement>("span");
-      if (off && sub && motivo) sub.textContent = motivo;
-    };
-    const amanha = addDias(hoje, 1);
-    if (fechado(hoje)) set("hoje", true, "fechado às segundas");
-    else if (periodosDoDia(hoje).length === 0) set("hoje", true, "por hoje já passou o horário");
-    else set("hoje", false);
-    if (fechado(amanha)) set("amanha", true, "fechado às segundas"); else set("amanha", false);
-    marcar(g, s.entrega.quando);
-  };
-
-  const prepararPeriodo = () => {
-    const g = document.querySelector<HTMLElement>('[data-choice="periodo"]')!;
-    const d = s.entrega.data ? deIso(s.entrega.data) : hoje;
-    const ok = periodosDoDia(d).map((p) => p.id);
-    g.querySelectorAll<HTMLButtonElement>("[data-opt]").forEach((b) => { b.disabled = !ok.includes(b.dataset.opt!); });
-    if (s.entrega.periodo && !ok.includes(s.entrega.periodo)) s.entrega.periodo = undefined;
-    marcar(g, s.entrega.periodo);
-  };
-
-  // ---------- confirmação: lembrete, agenda, whatsapp ----------
-  const compacto = (d: Date, hm?: string) => {
-    const base = iso(d).replace(/-/g, "");
-    if (!hm) return base;
-    return `${base}T${hm.replace(":", "")}00`;
-  };
-  const evento = () => {
-    const d = s.entrega.data ? deIso(s.entrega.data) : addDias(hoje, 1);
-    const p = periodoObj();
-    const titulo = `Levar currículo ao Qüem Qüem — ${vagaNome()}`;
-    const desc = `Primeira etapa da candidatura feita online. Ao chegar, informe isso na recepção. Leve o currículo impresso.`;
-    const lugar = `${cfg.local.nome}, ${cfg.local.rua}, ${cfg.local.bairro}, ${cfg.local.cidade}-${cfg.local.uf}`;
-    const ini = p ? compacto(d, p.ini) : compacto(d);
-    const fim = p ? compacto(d, p.fim) : compacto(addDias(d, 1));
-    return { titulo, desc, lugar, ini, fim, diaInteiro: !p };
-  };
-  const ics = () => {
-    const e = evento();
-    const esc = (t: string) => t.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
-    const dt = e.diaInteiro ? `DTSTART;VALUE=DATE:${e.ini}\r\nDTEND;VALUE=DATE:${e.fim}` : `DTSTART:${e.ini}\r\nDTEND:${e.fim}`;
-    return [
-      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Quem Quem//Vagas//PT", "BEGIN:VEVENT",
-      `UID:${s.id}@quemquem`, `DTSTAMP:${compacto(new Date(), "00:00")}`, dt,
-      `SUMMARY:${esc(e.titulo)}`, `LOCATION:${esc(e.lugar)}`, `DESCRIPTION:${esc(e.desc)}`,
-      "BEGIN:VALARM", "TRIGGER:-PT2H", "ACTION:DISPLAY", `DESCRIPTION:${esc(e.titulo)}`, "END:VALARM",
-      "END:VEVENT", "END:VCALENDAR",
-    ].join("\r\n");
-  };
-  document.querySelector<HTMLButtonElement>("[data-lembrete]")?.addEventListener("click", () => {
-    const blob = new Blob([ics()], { type: "text/calendar;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "curriculo-quemquem.ics"; document.body.appendChild(a); a.click();
-    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
-  });
-
-  const prepararConfirmacao = () => {
-    const semData = s.entrega.quando === "nao";
-    document.querySelectorAll<HTMLElement>('[data-if="lembrete"]').forEach((el) => { el.hidden = semData; });
-    document.querySelectorAll<HTMLElement>('[data-if="whats"]').forEach((el) => { el.hidden = !cfg.whatsappVagas.ativo; });
-
-    const e = evento();
-    const gcal = new URL("https://calendar.google.com/calendar/render");
-    gcal.searchParams.set("action", "TEMPLATE");
-    gcal.searchParams.set("text", e.titulo);
-    gcal.searchParams.set("dates", `${e.ini}/${e.fim}`);
-    gcal.searchParams.set("details", e.desc);
-    gcal.searchParams.set("location", e.lugar);
-    document.querySelector<HTMLAnchorElement>("[data-gcal]")!.href = gcal.toString();
-
-    const msg = `Olá! Fiz a primeira etapa da candidatura online para a vaga de ${vagaNome()} e vou levar meu currículo: ${entregaTxt().toLowerCase()}${periodoObj() ? `, ${periodoObj()!.label.toLowerCase()}` : ""}. Meu nome é ${s.dados.nome}.`;
-    document.querySelector<HTMLAnchorElement>("[data-whats]")!.href =
-      `https://wa.me/${cfg.whatsappVagas.numero}?text=${encodeURIComponent(msg)}`;
-  };
-
-  // ---------- botões genéricos ----------
-  document.querySelectorAll<HTMLButtonElement>("[data-next]").forEach((b) =>
-    b.addEventListener("click", () => {
-      const atual = b.closest<HTMLElement>("[data-step]")!.dataset.step!;
-      if (validar[atual] && !validar[atual]()) return;
-      const n = proximo(atual);
-      if (n) mostrar(n);
-    }),
-  );
-  document.querySelectorAll<HTMLButtonElement>("[data-back]").forEach((b) =>
-    b.addEventListener("click", () => mostrar(anterior(b.closest<HTMLElement>("[data-step]")!.dataset.step!))),
-  );
-  document.querySelector<HTMLButtonElement>("[data-retomar]")?.addEventListener("click", () =>
-    mostrar(s.concluidoEm ? "confirmacao" : (s.etapa === "inicio" ? ordem[s.alcancou] : s.etapa)),
-  );
-  document.querySelectorAll<HTMLButtonElement>("[data-reiniciar]").forEach((b) =>
-    b.addEventListener("click", () => {
-      s = novo(); salvar();
-      ["nome", "whatsapp", "idade", "cidade"].forEach((n) => { campo(n).value = ""; erro(n); });
-      document.querySelectorAll<HTMLElement>("[data-choice]").forEach((g) => marcar(g, undefined));
-      mostrar("inicio");
-    }),
-  );
-
-  // ---------- início ----------
-  restaurarCampos();
-  document.querySelectorAll<HTMLElement>("[data-choice]").forEach((g) => {
-    const k = g.dataset.choice!;
-    const v = k === "vaga" ? s.dados.vaga : k.startsWith("triagem:") ? s.triagem[k.slice(8)] : k === "quando" ? s.entrega.quando : s.entrega.periodo;
-    marcar(g, v);
-  });
-  const inicial = location.hash.slice(1);
-  history.replaceState({ step: inicial || "inicio" }, "", location.hash || "#inicio");
-  mostrar(inicial && ordem.includes(inicial) ? inicial : "inicio", false);
-</script>
