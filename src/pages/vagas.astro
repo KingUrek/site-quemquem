@@ -93,12 +93,12 @@ const cfg = { vagas, local, disponibilidade, recebimento };
       </section>
 
       <section data-step="resultado" hidden>
-        <p class="eyebrow">Perguntas concluídas</p>
+        <p class="eyebrow">Etapa 1 concluída ✓</p>
         <div data-result="seguir">
-          <h2>Você pode dar o próximo passo, <span data-fill="nome"></span>.</h2>
-          <p class="notice">O próximo passo é <strong>levar seu currículo impresso ao Qüem Qüem.</strong></p>
-          <p class="help">Este aviso não é uma aprovação para a vaga. A entrevista será feita na hora, quando você entregar seu currículo.</p>
-          <div class="actions"><button class="btn btn--gold" type="button" data-planejar>Escolher dia para levar o currículo</button><button class="text-link" type="button" data-back>Rever respostas</button></div>
+          <h2><span data-fill="nome"></span>, seu perfil combina com a vaga.</h2>
+          <p class="notice">Você passou pela triagem online. A segunda etapa é uma <strong>entrevista presencial no Qüem Qüem.</strong></p>
+          <p class="help">A entrevista é feita na hora, quando você chegar. Leve seu currículo impresso. A contratação é decidida nessa conversa.</p>
+          <div class="actions"><button class="btn btn--gold" type="button" data-planejar>Escolher dia da entrevista</button><button class="text-link" type="button" data-back>Rever respostas</button></div>
         </div>
       </section>
 
@@ -113,7 +113,7 @@ const cfg = { vagas, local, disponibilidade, recebimento };
           <fieldset data-periodos-box hidden><legend>Em qual período você pretende ir?</legend><div class="choices" data-periodos></div></fieldset>
           <p class="help" data-sem-data hidden>Tudo bem. Você poderá voltar para escolher um dia quando souber sua disponibilidade.</p>
           <p class="error" id="erro-visita" role="alert" hidden></p>
-          <div class="actions"><button class="btn btn--gold" type="submit" data-visita-cta>Salvar meu plano de visita</button><button class="text-link" type="button" data-back>Voltar</button></div>
+          <div class="actions"><button class="btn btn--gold" type="submit" data-visita-cta>Agendar visita</button><button class="text-link" type="button" data-back>Voltar</button></div>
         </form>
       </section>
 

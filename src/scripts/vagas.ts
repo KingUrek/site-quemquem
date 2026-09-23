@@ -186,7 +186,7 @@ function atualizarPeriodos() {
   const depois = s.visita.modo === "depois";
   $("[data-custom]").hidden = s.visita.modo !== "outro";
   $("[data-sem-data]").hidden = !depois;
-  $("[data-visita-cta]").textContent = depois ? "Ver orientações para a entrega" : "Salvar meu plano de visita";
+  $("[data-visita-cta]").textContent = depois ? "Ver orientações para a entrega" : "Agendar visita";
   const ps = depois ? [] : periodosDisponiveis(s.visita.data, cfg.recebimento);
   const box = $("[data-periodos]"); box.replaceChildren();
   if (!ps.some(p => p.id === s.visita.periodo)) s.visita.periodo = "";
