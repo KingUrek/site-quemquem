@@ -1,5 +1,6 @@
 import type { vagas, local, disponibilidade, recebimento } from "../data/vagas";
 import { agoraLocal, dataValida, formatarData, periodosDisponiveis, proximasDatas, eventoAgenda, mascaraTelefone } from "../lib/recrutamento";
+import { registrarCandidatura } from "../lib/supabase";
 
 type Config = { vagas: typeof vagas; local: typeof local; disponibilidade: typeof disponibilidade; recebimento: typeof recebimento };
 type Estado = {
@@ -47,8 +48,36 @@ let loadingTimers: ReturnType<typeof setTimeout>[] = [];
 function cancelarLoading() {
   loadingTimers.forEach(clearTimeout); loadingTimers = [];
 }
+/**
+ * Manda a candidatura pro Supabase. Roda duas vezes no fluxo: ao fim da
+ * triagem (pega também quem desiste antes de agendar) e ao agendar a visita.
+ * O id vem do navegador, então a segunda chamada atualiza a mesma linha.
+ * É disparada sem await — nada na tela espera a rede.
+ */
+function enviar(status: "triagem" | "agendada") {
+  const sim = (v: string) => v === "sim";
+  const moraAqui = sim(s.respostas.mora);
+  void registrarCandidatura({
+    p_id: s.id,
+    p_vaga: s.dados.vaga,
+    p_nome: s.dados.nome,
+    p_whatsapp: s.dados.whatsapp,
+    p_cidade: s.dados.cidade.trim() || (moraAqui ? cfg.local.cidade : ""),
+    p_mora_itaperuna: moraAqui,
+    p_pode_noite: sim(s.respostas.noite),
+    p_pode_fds: sim(s.respostas.fds),
+    p_inicio: s.respostas.inicio,
+    p_status: status,
+    p_visita_modo: s.visita.modo || null,
+    p_visita_data: s.visita.data || null,
+    p_visita_periodo: s.visita.periodo || null,
+    p_respostas: s.respostas,
+  });
+}
+
 function analisar() {
   cancelarLoading();
+  enviar("triagem");
   // Transição visual provisória. Substituir por uma análise real quando houver backend.
   todos("[data-step]").forEach(el => el.hidden = el.dataset.step !== "analise");
   atual = "analise";
@@ -256,7 +285,10 @@ todos<HTMLFormElement>("[data-form]").forEach(form => form.addEventListener("sub
   if (atual === "analise") return;
   if (validarFormulario(etapa)) {
     if (etapa === "disponibilidade") analisar();
-    else mostrar(etapas[etapas.indexOf(etapa) + 1]);
+    else {
+      if (etapa === "visita") enviar("agendada");
+      mostrar(etapas[etapas.indexOf(etapa) + 1]);
+    }
   }
 }));
 todos("[data-back]").forEach(btn => btn.addEventListener("click", () => mostrar(etapas[Math.max(0, etapas.indexOf(atual) - 1)])));
