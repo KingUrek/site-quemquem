@@ -160,8 +160,12 @@ function mostrar(destino: string, push = true) {
   $("[data-progress-text]").textContent = `Etapa ${i + 1} de ${etapas.length} · ${titulos[i]}`;
   $<HTMLProgressElement>("progress").value = i + 1;
   salvar();
-  if (push) history.pushState({ etapa: destino }, "", `#${destino}`);
-  else history.replaceState({ etapa: destino }, "", `#${destino}`);
+  // Preserva a query string ao trocar o hash. Sem isto, chegar com
+  // ?fbclid=… (clique em anúncio), ?utm_… ou o parâmetro do "Testar eventos"
+  // do Meta faria o parâmetro ser descartado na primeira reescrita da URL.
+  const url = `${location.pathname}${location.search}#${destino}`;
+  if (push) history.pushState({ etapa: destino }, "", url);
+  else history.replaceState({ etapa: destino }, "", url);
   const h = todos<HTMLElement>(`[data-step="${destino}"] h1, [data-step="${destino}"] h2`).find(el => !el.closest("[hidden]"));
   if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
   window.scrollTo({ top: 0, behavior: "instant" });
