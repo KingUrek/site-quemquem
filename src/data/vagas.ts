@@ -3,6 +3,7 @@
 export const vagas = [
   { id: "garcom", nome: "Garçom / Garçonete" },
   { id: "aux-cozinha", nome: "Auxiliar de cozinha" },
+  { id: "motoboy", nome: "Motoboy" },
 ];
 
 export const local = {
