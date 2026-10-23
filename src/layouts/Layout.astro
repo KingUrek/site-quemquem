@@ -8,12 +8,15 @@ import MetaPixel from "../components/MetaPixel.astro";
 interface Props {
   title?: string;
   description?: string;
+  /** Páginas internas (ex.: /admin) que não devem aparecer em buscadores. */
+  noindex?: boolean;
 }
 
 const {
   title = "Qüem Qüem — a esquina mais charmosa de Itaperuna",
   description =
     "Restaurante-bar premium em Itaperuna há 40 anos. Chopp geladíssimo na tulipa congelada, chopp de vinho e uma adega rara para a região.",
+  noindex = false,
 } = Astro.props;
 ---
 
@@ -24,6 +27,7 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
 
     <!-- Open Graph: como o link aparece quando compartilhado no WhatsApp/Instagram -->
     <meta property="og:type" content="website" />

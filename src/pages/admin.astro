@@ -1,0 +1,399 @@
+---
+// src/pages/admin.astro
+// Lista das candidaturas recebidas em /vagas.
+//
+// Acesso por login do Supabase Auth: só quem está em quemquem.admins
+// enxerga as linhas (ver migration 20261023164616_quemquem_admins).
+import Layout from "../layouts/Layout.astro";
+import { vagas } from "../data/vagas";
+---
+
+<Layout title="Candidaturas — Qüem Qüem" description="Área restrita." noindex>
+  <div class="app">
+    <header class="top">
+      <div>
+        <p class="brand">Q<span>ü</span>em Q<span>ü</span>em</p>
+        <p class="sub">Candidaturas</p>
+      </div>
+      <button class="sair" data-sair hidden>Sair</button>
+    </header>
+
+    <main>
+      <!-- ===================== LOGIN ===================== -->
+      <section class="login" data-tela="login" hidden>
+        <h1>Área restrita</h1>
+        <p class="ajuda">Entre com o e-mail cadastrado para ver as candidaturas.</p>
+        <form data-form-login novalidate>
+          <label class="campo">
+            E-mail
+            <input type="email" name="email" autocomplete="username" required />
+          </label>
+          <label class="campo">
+            Senha
+            <input type="password" name="senha" autocomplete="current-password" required />
+          </label>
+          <p class="erro" data-erro-login hidden role="alert"></p>
+          <button class="btn btn--gold" type="submit" data-btn-entrar>Entrar</button>
+        </form>
+      </section>
+
+      <!-- ===================== CARREGANDO ===================== -->
+      <section class="meio" data-tela="carregando" hidden aria-busy="true">
+        <span class="spinner" aria-hidden="true"></span>
+        <p>Carregando candidaturas…</p>
+      </section>
+
+      <!-- ===================== LISTA ===================== -->
+      <section data-tela="lista" hidden>
+        <div class="resumo">
+          <div class="stat"><b data-total>0</b><span>no total</span></div>
+          <div class="stat"><b data-agendadas>0</b><span>agendaram visita</span></div>
+          <div class="stat"><b data-hoje>0</b><span>nos últimos 7 dias</span></div>
+        </div>
+
+        <div class="filtros">
+          <input type="search" data-busca placeholder="Buscar por nome, cidade ou telefone" aria-label="Buscar" />
+          <div class="selects">
+            <label class="sel">
+              Vaga
+              <select data-filtro-vaga>
+                <option value="">Todas</option>
+                {vagas.map((v) => <option value={v.id}>{v.nome}</option>)}
+              </select>
+            </label>
+            <label class="sel">
+              Situação
+              <select data-filtro-status>
+                <option value="">Todas</option>
+                <option value="agendada">Agendou visita</option>
+                <option value="triagem">Só respondeu</option>
+              </select>
+            </label>
+          </div>
+          <div class="acoes-lista">
+            <span class="contagem" data-contagem></span>
+            <button class="link" data-recarregar>Atualizar</button>
+            <button class="link" data-csv>Baixar CSV</button>
+          </div>
+        </div>
+
+        <p class="erro" data-erro-lista hidden role="alert"></p>
+        <p class="vazio" data-vazio hidden>Nenhuma candidatura com esses filtros.</p>
+
+        <ul class="cards" data-cards></ul>
+      </section>
+
+      <!-- ===================== SEM CONFIG ===================== -->
+      <section class="meio" data-tela="sem-config" hidden>
+        <h1>Não configurado</h1>
+        <p class="ajuda">
+          Faltam as variáveis <code>PUBLIC_SUPABASE_URL</code> e
+          <code>PUBLIC_SUPABASE_PUBLISHABLE_KEY</code> neste build.
+        </p>
+      </section>
+    </main>
+  </div>
+</Layout>
+
+<style>
+  .app { min-height: 100svh; display: flex; flex-direction: column; background: var(--dark-bg); }
+  .app [hidden] { display: none !important; }
+
+  .top {
+    display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+    padding: 1rem var(--gutter);
+    border-bottom: 1px solid var(--dark-line);
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--dark-bg) 94%, transparent);
+    backdrop-filter: blur(8px);
+  }
+  .brand { font-family: var(--display); font-size: 1.3rem; color: var(--marfim); line-height: 1.1; }
+  .brand span { color: var(--champagne); }
+  .sub { font-size: .6rem; letter-spacing: .3em; text-transform: uppercase; color: var(--dark-mute); margin-top: .2rem; }
+  .sair {
+    font-family: var(--body); font-size: .8rem;
+    background: none; border: 1px solid var(--dark-line); color: var(--dark-dim);
+    padding: .5rem .9rem; cursor: pointer;
+  }
+  .sair:hover { border-color: var(--champagne); color: var(--ouro); }
+
+  main { width: min(100%, 980px); margin-inline: auto; padding: 1.8rem var(--gutter) 3rem; flex: 1; }
+
+  h1 { font-size: clamp(1.6rem, 1.3rem + 1.5vw, 2.2rem); color: var(--marfim); }
+  .ajuda { color: var(--dark-dim); margin-top: .6rem; font-size: .95rem; }
+  code { background: rgba(244,239,232,.08); padding: .1rem .35rem; font-size: .9em; }
+
+  /* ---- login ---- */
+  .login { max-width: 24rem; margin: clamp(2rem, 8vh, 5rem) auto 0; }
+  .campo { display: grid; gap: .4rem; margin-top: 1.2rem; font-size: .85rem; letter-spacing: .1em; text-transform: uppercase; color: var(--champagne); }
+  .campo input {
+    font: inherit; font-size: 1rem; letter-spacing: normal; text-transform: none;
+    padding: .85rem; min-height: 48px;
+    background: var(--cafe); color: var(--marfim);
+    border: 1px solid var(--dark-line); border-radius: 2px;
+  }
+  .campo input:focus { outline: none; border-color: var(--champagne); }
+  .login .btn { width: 100%; justify-content: center; margin-top: 1.5rem; min-height: 50px; text-transform: none; letter-spacing: .02em; }
+
+  /* ---- estados ---- */
+  .meio { text-align: center; padding-block: clamp(3rem, 12vh, 6rem); color: var(--dark-dim); }
+  .spinner {
+    display: block; width: 38px; height: 38px; margin: 0 auto 1.2rem;
+    border: 3px solid var(--dark-line); border-top-color: var(--champagne); border-radius: 50%;
+    animation: girar .8s linear infinite;
+  }
+  @keyframes girar { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+
+  .erro { color: #f0aaa4; font-size: .9rem; margin-top: .9rem; }
+  .vazio { color: var(--dark-mute); text-align: center; padding-block: 3rem; }
+
+  /* ---- resumo ---- */
+  .resumo { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+  .stat {
+    border: 1px solid var(--dark-line); background: rgba(244,239,232,.03);
+    padding: .9rem 1rem; display: grid; gap: .1rem;
+  }
+  .stat b { font-family: var(--display); font-size: 1.9rem; color: var(--ouro); line-height: 1; }
+  .stat span { font-size: .72rem; color: var(--dark-mute); }
+
+  /* ---- filtros ---- */
+  .filtros { margin-top: 1.4rem; display: grid; gap: .7rem; }
+  [data-busca] {
+    font: inherit; font-size: 1rem; width: 100%; min-height: 48px; padding: .75rem;
+    background: var(--cafe); color: var(--marfim);
+    border: 1px solid var(--dark-line); border-radius: 2px;
+  }
+  [data-busca]:focus { outline: none; border-color: var(--champagne); }
+  .selects { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+  .sel { display: grid; gap: .3rem; font-size: .68rem; letter-spacing: .18em; text-transform: uppercase; color: var(--dark-mute); }
+  .sel select {
+    font: inherit; font-size: .95rem; letter-spacing: normal; text-transform: none;
+    padding: .6rem; min-height: 44px;
+    background: var(--cafe); color: var(--marfim);
+    border: 1px solid var(--dark-line); border-radius: 2px;
+  }
+  .acoes-lista { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .contagem { font-size: .82rem; color: var(--dark-mute); margin-right: auto; }
+  .link {
+    font: inherit; font-size: .85rem; background: none; border: none; cursor: pointer;
+    color: var(--ouro); text-decoration: underline; text-underline-offset: 4px; padding: .4rem 0;
+  }
+
+  /* ---- cards ---- */
+  .cards { list-style: none; padding: 0; margin: 1.4rem 0 0; display: grid; gap: .7rem; }
+  .cards :global(.card) {
+    border: 1px solid var(--dark-line); background: rgba(244,239,232,.03);
+    padding: 1rem 1.1rem;
+  }
+  .cards :global(.card.is-agendada) { border-left: 3px solid var(--champagne); }
+  .cards :global(.linha1) { display: flex; align-items: baseline; gap: .7rem; flex-wrap: wrap; }
+  .cards :global(.nome) { font-family: var(--display); font-size: 1.25rem; color: var(--marfim); font-weight: 480; }
+  .cards :global(.etiqueta) {
+    font-size: .6rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 600;
+    padding: .18rem .45rem; border: 1px solid rgba(201,165,106,.4); color: var(--champagne);
+  }
+  .cards :global(.etiqueta.ok) { background: var(--champagne); color: var(--preto); border-color: var(--champagne); }
+  .cards :global(.quando) { margin-left: auto; font-size: .78rem; color: var(--dark-mute); }
+  .cards :global(.dados) { margin-top: .6rem; display: flex; flex-wrap: wrap; gap: .3rem .9rem; font-size: .88rem; color: var(--dark-dim); }
+  .cards :global(.dados b) { color: var(--marfim); font-weight: 600; }
+  .cards :global(.visita) {
+    margin-top: .7rem; padding: .55rem .75rem;
+    background: rgba(201,165,106,.09); border: 1px dashed rgba(201,165,106,.3);
+    font-size: .88rem; color: var(--dark-dim);
+  }
+  .cards :global(.visita b) { color: var(--ouro); }
+  .cards :global(.zap) {
+    display: inline-flex; align-items: center; gap: .4rem;
+    margin-top: .7rem; font-size: .85rem; color: var(--ouro);
+    text-decoration: underline; text-underline-offset: 3px;
+    min-height: 40px;
+  }
+
+  @media (max-width: 560px) {
+    .resumo { grid-template-columns: 1fr; }
+    .stat { display: flex; align-items: baseline; gap: .6rem; padding: .7rem .9rem; }
+    .stat b { font-size: 1.4rem; }
+    .cards :global(.quando) { margin-left: 0; width: 100%; }
+  }
+</style>
+
+<script>
+  import { configurado, entrar, listar, sair, temSessao, SessaoExpirada, type Candidatura } from "../lib/admin";
+  import { vagas } from "../data/vagas";
+
+  const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector<T>(s)!;
+  const telas = ["login", "carregando", "lista", "sem-config"] as const;
+  const mostrar = (t: (typeof telas)[number]) => {
+    telas.forEach((n) => ($(`[data-tela="${n}"]`).hidden = n !== t));
+    $("[data-sair]").hidden = t !== "lista";
+  };
+
+  let dados: Candidatura[] = [];
+
+  const nomeVaga = (id: string) => vagas.find((v) => v.id === id)?.nome ?? id;
+  const esc = (t: string) =>
+    t.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+
+  const dia = (iso: string) =>
+    new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+  const diaHora = (iso: string) =>
+    new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  const dataVisita = (d: string) => {
+    const [a, m, x] = d.split("-").map(Number);
+    return new Date(a, m - 1, x).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "2-digit" });
+  };
+
+  function filtrar(): Candidatura[] {
+    const q = $<HTMLInputElement>("[data-busca]").value.trim().toLocaleLowerCase("pt-BR");
+    const vaga = $<HTMLSelectElement>("[data-filtro-vaga]").value;
+    const status = $<HTMLSelectElement>("[data-filtro-status]").value;
+    return dados.filter((c) => {
+      if (vaga && c.vaga !== vaga) return false;
+      if (status && c.status !== status) return false;
+      if (!q) return true;
+      const digitos = q.replace(/\D/g, "");
+      return (
+        c.nome.toLocaleLowerCase("pt-BR").includes(q) ||
+        c.cidade.toLocaleLowerCase("pt-BR").includes(q) ||
+        (digitos.length >= 3 && (c.whatsapp_digitos ?? "").includes(digitos))
+      );
+    });
+  }
+
+  function render() {
+    const lista = filtrar();
+    $("[data-contagem]").textContent =
+      lista.length === dados.length ? `${dados.length} candidatura(s)` : `${lista.length} de ${dados.length}`;
+    $("[data-vazio]").hidden = lista.length > 0;
+
+    $("[data-cards]").innerHTML = lista
+      .map((c) => {
+        const agendou = c.status === "agendada" && c.visita_data;
+        const visita = agendou
+          ? `<p class="visita">Vai levar o currículo <b>${esc(dataVisita(c.visita_data!))}</b></p>`
+          : c.status === "agendada"
+            ? `<p class="visita">Confirmou que vai, <b>sem data definida</b></p>`
+            : "";
+        const restricoes = [
+          c.pode_noite ? null : "não pode à noite",
+          c.pode_fds ? null : "não pode fim de semana",
+          c.mora_itaperuna ? null : "mora fora de Itaperuna",
+        ].filter(Boolean);
+        return `<li class="card ${agendou ? "is-agendada" : ""}">
+          <div class="linha1">
+            <span class="nome">${esc(c.nome)}</span>
+            <span class="etiqueta ${c.status === "agendada" ? "ok" : ""}">${c.status === "agendada" ? "Agendou" : "Só respondeu"}</span>
+            <span class="quando">${esc(diaHora(c.criado_em))}</span>
+          </div>
+          <div class="dados">
+            <span><b>${esc(nomeVaga(c.vaga))}</b></span>
+            <span>${esc(c.cidade)}</span>
+            <span>Começa: ${esc(inicioTxt(c.inicio))}</span>
+            ${restricoes.length ? `<span>⚠ ${esc(restricoes.join(" · "))}</span>` : ""}
+          </div>
+          ${visita}
+          <a class="zap" href="https://wa.me/55${esc(c.whatsapp_digitos ?? "")}" target="_blank" rel="noopener">
+            ${esc(c.whatsapp)} — chamar no WhatsApp
+          </a>
+        </li>`;
+      })
+      .join("");
+  }
+
+  const inicioTxt = (v: string) =>
+    ({ imediato: "imediatamente", "1sem": "em 1 semana", "15d": "em 15 dias", mais: "depois de 15 dias" })[v] ?? v;
+
+  function resumo() {
+    const seteDias = Date.now() - 7 * 864e5;
+    $("[data-total]").textContent = String(dados.length);
+    $("[data-agendadas]").textContent = String(dados.filter((c) => c.status === "agendada").length);
+    $("[data-hoje]").textContent = String(dados.filter((c) => new Date(c.criado_em).getTime() >= seteDias).length);
+  }
+
+  async function carregar() {
+    mostrar("carregando");
+    try {
+      dados = await listar();
+      resumo();
+      render();
+      mostrar("lista");
+      $("[data-erro-lista]").hidden = true;
+    } catch (e) {
+      if (e instanceof SessaoExpirada) {
+        mostrar("login");
+        erroLogin("Sua sessão expirou. Entre de novo.");
+        return;
+      }
+      mostrar("lista");
+      const el = $("[data-erro-lista]");
+      el.hidden = false;
+      el.textContent = e instanceof Error ? e.message : "Erro ao carregar.";
+    }
+  }
+
+  function erroLogin(msg: string) {
+    const el = $("[data-erro-login]");
+    el.hidden = !msg;
+    el.textContent = msg;
+  }
+
+  $<HTMLFormElement>("[data-form-login]").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const f = ev.target as HTMLFormElement;
+    const btn = $<HTMLButtonElement>("[data-btn-entrar]");
+    const email = (f.elements.namedItem("email") as HTMLInputElement).value;
+    const senha = (f.elements.namedItem("senha") as HTMLInputElement).value;
+    if (!email || !senha) return erroLogin("Preencha e-mail e senha.");
+
+    btn.disabled = true;
+    btn.textContent = "Entrando…";
+    erroLogin("");
+    const msg = await entrar(email, senha);
+    btn.disabled = false;
+    btn.textContent = "Entrar";
+    if (msg) return erroLogin(msg);
+    f.reset();
+    carregar();
+  });
+
+  $("[data-sair]").addEventListener("click", () => {
+    sair();
+    dados = [];
+    mostrar("login");
+  });
+  $("[data-recarregar]").addEventListener("click", carregar);
+  $("[data-busca]").addEventListener("input", render);
+  $("[data-filtro-vaga]").addEventListener("change", render);
+  $("[data-filtro-status]").addEventListener("change", render);
+
+  $("[data-csv]").addEventListener("click", () => {
+    const col = ["Nome", "WhatsApp", "Vaga", "Cidade", "Situação", "Data da visita", "Noite", "Fim de semana", "Começa", "Recebida em"];
+    const asp = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
+    const linhas = filtrar().map((c) =>
+      [
+        c.nome, c.whatsapp, nomeVaga(c.vaga), c.cidade,
+        c.status === "agendada" ? "Agendou" : "Só respondeu",
+        c.visita_data ? dia(c.visita_data) : "",
+        c.pode_noite ? "Sim" : "Não",
+        c.pode_fds ? "Sim" : "Não",
+        inicioTxt(c.inicio),
+        diaHora(c.criado_em),
+      ].map(asp).join(";"),
+    );
+    // BOM para o Excel abrir os acentos corretamente
+    const csv = "﻿" + [col.map(asp).join(";"), ...linhas].join("\r\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `candidaturas-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  if (!configurado) mostrar("sem-config");
+  else if (temSessao()) carregar();
+  else mostrar("login");
+</script>
